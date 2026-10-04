@@ -51,6 +51,7 @@
     const body = { answers: { ...st.pending.answers }, flags: { ...st.pending.flags }, current: st.cur };
     try {
       const r = await fetch(root.dataset.save, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf }, body: JSON.stringify(body) });
+      if (r.status === 419) { persist(); onbeforeunload = null; location.reload(); return; }
       if (!r.ok) throw new Error(r.status);
       const j = await r.json();
       if (j.expired) { try { localStorage.removeItem(storeKey); } catch (_) {} location.href = j.redirect; return; }
