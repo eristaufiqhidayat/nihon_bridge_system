@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ApplicantService
 {
@@ -34,7 +35,7 @@ class ApplicantService
             'level_bahasa' => $data['level'],
             'referensi' => $data['ref'],
             'hp' => $data['hp'],
-            'email' => $data['email'] ?: null,
+            'email' => $data['email'],
             'status' => 'baru',
             'berkas' => $files,
             'registered_at' => now()->toDateString(),
@@ -71,9 +72,12 @@ class ApplicantService
         abort_unless($a->status === 'tes', 422);
 
         return DB::transaction(function () use ($a, $class) {
-            $email = $a->email ?: Str::of($a->nama)->lower()->ascii()->replaceMatches('/[^a-z ]/', '')->squish()->replace(' ', '.') . '@nihonbridge.id';
+            $email = $a->email;
+            if (! $email) {
+                throw ValidationException::withMessages(['email' => "{$a->nama} belum punya email. Email wajib untuk membuat akun login."]);
+            }
             if (User::where('email', $email)->exists()) {
-                $email = Str::before($email, '@') . '.' . Str::lower(Str::random(3)) . '@nihonbridge.id';
+                throw ValidationException::withMessages(['email' => "Email {$email} sudah dipakai akun lain. Hubungi pendaftar untuk email pengganti."]);
             }
             $user = User::create([
                 'name' => $a->nama, 'email' => $email, 'password' => Hash::make(Str::random(32)),

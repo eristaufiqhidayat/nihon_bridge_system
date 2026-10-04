@@ -48,12 +48,15 @@ class DaftarController extends Controller
         }
 
         if ($step === 1) {
+            // Email menjadi alamat login akun peserta, jadi wajib dan tidak boleh dipakai akun atau pendaftaran lain.
+            $request->merge(['email' => mb_strtolower(trim((string) $request->input('email')))]);
             $d = array_merge($d, $request->validate([
                 'nama' => ['required', 'string', 'max:120'],
                 'nik' => ['required', 'regex:/^\d{16}$/'],
                 'ttl' => ['required', 'string', 'max:120'],
                 'hp' => ['required', 'string', 'max:30'],
-                'email' => ['nullable', 'email'],
+                'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email'),
+                    Rule::unique('applicants', 'email')->where(fn ($q) => $q->where('status', '!=', 'ditolak'))],
                 'pend' => ['required', Rule::in(Catalog::EDUCATION)],
             ], [
                 'nama.required' => 'Isi nama, tempat tanggal lahir, dan nomor WhatsApp.',
@@ -61,7 +64,9 @@ class DaftarController extends Controller
                 'hp.required' => 'Isi nama, tempat tanggal lahir, dan nomor WhatsApp.',
                 'nik.required' => 'NIK harus 16 digit angka.',
                 'nik.regex' => 'NIK harus 16 digit angka.',
+                'email.required' => 'Isi alamat email. Email ini dipakai untuk login setelah Anda diterima.',
                 'email.email' => 'Format email belum benar.',
+                'email.unique' => 'Email ini sudah terdaftar. Pakai email lain, atau hubungi LPK jika ini email Anda.',
             ]));
         } elseif ($step === 2) {
             $d = array_merge($d, $request->validate([

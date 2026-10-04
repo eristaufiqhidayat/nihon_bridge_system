@@ -38,7 +38,7 @@ class OperationsSeeder extends Seeder
         foreach ($apps as [$no, $n, $asal, $usia, $pend, $prog, $tgl, $hp, $st, $b, $extra]) {
             Applicant::create([
                 'reg_no' => $no, 'nama' => $n, 'asal' => $asal, 'ttl' => $asal, 'usia' => $usia, 'pendidikan' => $pend, 'program' => $prog,
-                'registered_at' => $tgl, 'hp' => $hp, 'status' => $st, 'berkas' => $berkas($b), 'level_bahasa' => 'Belum pernah belajar', 'referensi' => 'Media sosial',
+                'registered_at' => $tgl, 'hp' => $hp, 'email' => $st === 'diterima' ? 'lina.marlina@nihonbridge.id' : str_replace(' ', '.', strtolower($n)) . '@email.com', 'status' => $st, 'berkas' => $berkas($b), 'level_bahasa' => 'Belum pernah belajar', 'referensi' => 'Media sosial',
             ] + $extra);
         }
 

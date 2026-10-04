@@ -19,7 +19,7 @@
         <div class="field"><label for="dNik">NIK</label><input id="dNik" name="nik" inputmode="numeric" maxlength="16" value="{{ old('nik', $d['nik']) }}" placeholder="16 digit"></div>
         <div class="field"><label for="dTtl">Tempat, tanggal lahir</label><input id="dTtl" name="ttl" value="{{ old('ttl', $d['ttl']) }}" placeholder="mis. Cirebon, 3 Maret 2005"></div>
         <div class="field"><label for="dHp">No. WhatsApp</label><input id="dHp" name="hp" inputmode="tel" value="{{ old('hp', $d['hp']) }}" placeholder="08xx-xxxx-xxxx"></div>
-        <div class="field"><label for="dEmail">Email</label><input id="dEmail" name="email" type="email" value="{{ old('email', $d['email']) }}" placeholder="nama@email.com"></div>
+        <div class="field"><label for="dEmail">Email (untuk login)</label><input id="dEmail" name="email" type="email" required autocomplete="email" value="{{ old('email', $d['email']) }}" placeholder="nama@email.com"></div>
         <div class="field"><label for="dPend">Pendidikan terakhir</label><select id="dPend" name="pend">@foreach (Catalog::EDUCATION as $o)<option @selected($o === old('pend', $d['pend']))>{{ $o }}</option>@endforeach</select></div>
       </div>
     @elseif ($step === 2)

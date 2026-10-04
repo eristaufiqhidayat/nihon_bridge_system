@@ -30,7 +30,7 @@
       <?php $miss = $sel->missingFiles(); ?>
       <div class="card pad"><div class="mon-profile"><div class="av lg">{{ \App\Support\Fmt::initials($sel->nama) }}</div><div><h4>{{ $sel->nama }}</h4><p>{{ $sel->reg_no }} · daftar {{ Fmt::date($sel->registered_at) }}</p></div></div>
         <div class="review-grid" style="margin:14px 0">
-          @foreach (['Asal' => $sel->asal, 'Usia' => $sel->usia ?? '–', 'Pendidikan' => $sel->pendidikan, 'WhatsApp' => $sel->hp, 'Program' => $sel->program, 'Status' => $sel->status_label] as $k => $v)<div><span>{{ $k }}</span><b>{{ $v }}</b></div>@endforeach
+          @foreach (['Asal' => $sel->asal, 'Usia' => $sel->usia ?? '–', 'Pendidikan' => $sel->pendidikan, 'WhatsApp' => $sel->hp, 'Email' => $sel->email ?? '–', 'Program' => $sel->program, 'Status' => $sel->status_label] as $k => $v)<div><span>{{ $k }}</span><b>{{ $v }}</b></div>@endforeach
         </div>
         @if ($sel->tes_jadwal)<div class="callout" style="margin-bottom:12px"><b>Tes &amp; wawancara:</b> {{ $sel->tes_jadwal }} · Kantor {{ config('nihonbridge.org.name') }}</div>@endif
         @if ($sel->status === 'diterima')<div class="callout" style="margin-bottom:12px"><b>Diterima.</b> Akun peserta dibuat dan ditempatkan di kelas {{ $sel->classroom?->kode }}.</div>@endif

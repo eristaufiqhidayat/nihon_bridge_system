@@ -71,6 +71,7 @@ Semua angka ini ada di `config/nihonbridge.php`.
 - Paket ujian menyimpan salinan soal saat diterbitkan. Perubahan di bank soal tidak mengubah paket yang sudah terbit.
 - Biaya Rp21.000.000 dibayar dalam 6 cicilan Rp3.500.000.
 - Batas kehadiran minimal 85%.
+- Pendaftar wajib mengisi email. Email harus unik, tidak boleh dipakai akun lain atau pendaftaran lain yang masih berjalan, dan menjadi alamat login setelah pendaftar diterima.
 
 ## Struktur kode
 

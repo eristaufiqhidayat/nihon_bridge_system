@@ -66,7 +66,10 @@ class AlurTest extends TestCase
     {
         Storage::fake();
         $this->post('/daftar', ['nama' => 'Rina Uji Coba', 'nik' => '123', 'ttl' => 'Cirebon, 3 Maret 2005', 'hp' => '0812'])->assertSessionHasErrors('nik');
-        $this->post('/daftar', ['nama' => 'Rina Uji Coba', 'nik' => '3209123456780001', 'ttl' => 'Cirebon, 3 Maret 2005', 'hp' => '0812', 'pend' => 'SMA/SMK'])->assertRedirect('/daftar');
+        $step1 = ['nama' => 'Rina Uji Coba', 'nik' => '3209123456780001', 'ttl' => 'Cirebon, 3 Maret 2005', 'hp' => '0812', 'pend' => 'SMA/SMK'];
+        $this->post('/daftar', $step1)->assertSessionHasErrors('email');
+        $this->post('/daftar', $step1 + ['email' => 'ahmad.fauzi@nihonbridge.id'])->assertSessionHasErrors('email');
+        $this->post('/daftar', $step1 + ['email' => 'Rina.Uji@Email.com '])->assertRedirect('/daftar');
         $this->post('/daftar', ['prog' => 'Tokutei Ginou · Kaigo', 'level' => 'Setara N5', 'ref' => 'Sekolah'])->assertRedirect('/daftar');
         $this->post('/daftar', ['aksi' => 'lanjut'])->assertSessionHasErrors('berkas');
         $files = collect(['ktp', 'ijazah', 'foto', 'izin'])->mapWithKeys(fn ($k) => [$k => UploadedFile::fake()->image("$k.jpg")])->all();
@@ -85,7 +88,12 @@ class AlurTest extends TestCase
         $this->post(route('pendaftaran.test', $a), ['tanggal' => now()->addDays(3)->toDateString(), 'jam' => '09.00'])->assertRedirect();
         $this->post(route('pendaftaran.accept', $a), ['classroom_id' => Classroom::first()->id])->assertRedirect();
         $this->assertSame('diterima', $a->fresh()->status);
-        $this->assertDatabaseHas('users', ['name' => 'Rina Uji Coba', 'role' => 'peserta']);
+        $this->assertDatabaseHas('users', ['name' => 'Rina Uji Coba', 'role' => 'peserta', 'email' => 'rina.uji@email.com']);
+
+        // Email yang sudah dipakai tidak bisa didaftarkan lagi
+        $this->post('/logout');
+        $this->post('/daftar/baru');
+        $this->post('/daftar', $step1 + ['email' => 'rina.uji@email.com'])->assertSessionHasErrors('email');
     }
 
     public function test_keuangan_catat_dan_verifikasi(): void
