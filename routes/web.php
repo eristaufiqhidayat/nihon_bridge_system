@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin;
+use App\Http\Controllers\Auth\FirstPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Instruktur\KehadiranController;
@@ -36,8 +37,10 @@ Route::post('/daftar/baru', [DaftarController::class, 'reset'])->name('daftar.re
 Route::get('/verifikasi/{no?}', VerifikasiController::class)->name('verifikasi');
 
 /* ---------------- Aplikasi (login) ---------------- */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/password-baru', [FirstPasswordController::class, 'show'])->name('password.first');
+    Route::put('/password-baru', [FirstPasswordController::class, 'update'])->name('password.first.update');
 
     // Semua peran
     Route::get('/pesan/{conversation?}', [Shared\PesanController::class, 'index'])->name('pesan.index');

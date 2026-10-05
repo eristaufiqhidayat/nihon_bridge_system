@@ -169,4 +169,17 @@ class AlurTest extends TestCase
             ->assertRedirect();
         $this->assertSame($batch->id, Classroom::where('kode', 'N5-Z')->first()->batch_id);
     }
+
+    public function test_wajib_ganti_password_saat_login_pertama(): void
+    {
+        $u = User::where('role', 'peserta')->first();
+        $u->update(['password' => \Illuminate\Support\Facades\Hash::make('password'), 'must_change_password' => true]);
+        $this->post('/login', ['email' => $u->email, 'password' => 'password'])->assertRedirect(route('dashboard'));
+        $this->get('/dashboard')->assertRedirect(route('password.first'));
+        $this->get(route('password.first'))->assertOk()->assertSee('Buat password baru');
+        $this->put(route('password.first.update'), ['password' => 'password', 'password_confirmation' => 'password'])->assertSessionHasErrors('password');
+        $this->put(route('password.first.update'), ['password' => 'sakura2027', 'password_confirmation' => 'sakura2027'])->assertRedirect(route('dashboard'));
+        $this->assertFalse($u->fresh()->must_change_password);
+        $this->get('/dashboard')->assertOk();
+    }
 }

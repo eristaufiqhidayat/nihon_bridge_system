@@ -37,6 +37,21 @@ DB_PASSWORD=
 
 Buat database `nihon_bridge` (utf8mb4), lalu `php artisan migrate:fresh --seed`.
 
+## Data peserta asli (impor Excel)
+
+`DataSiswaSeeder` memasukkan 33 peserta Angkatan 1–4 beserta 70 tahap pembayaran dari
+"DATA SISWA LPK NIHON BRIDGE.xlsx". Data pribadinya **tidak disimpan di repo**: salin
+`data_siswa.json` ke `database/seeders/data/data_siswa.json` (sudah di-.gitignore), lalu:
+
+```bash
+php artisan migrate
+php artisan db:seed --class=DataSiswaSeeder
+```
+
+Password awal semua peserta impor: `password`. Mereka wajib membuat password baru saat login pertama.
+Peserta tanpa email memakai email sementara `nb-xx-xxxx@siswa.nihonbridge.local` dan akunnya nonaktif
+sampai admin melengkapi email dan mengaktifkannya. Seeder aman dijalankan ulang.
+
 ## Akun demo
 
 Semua password: **`sakura2026`**

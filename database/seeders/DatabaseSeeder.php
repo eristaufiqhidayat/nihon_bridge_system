@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AttendanceSeeder::class,
             OperationsSeeder::class,
             CommunicationSeeder::class,
+            DataSiswaSeeder::class,
         ]);
     }
 }
