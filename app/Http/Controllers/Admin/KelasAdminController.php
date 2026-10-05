@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Batch;
 use App\Models\Classroom;
 use App\Models\User;
 use App\Services\ScheduleService;
@@ -16,13 +17,14 @@ class KelasAdminController extends Controller
 {
     public function index(Request $request): View
     {
-        $classes = Classroom::with('wali')->withCount('students')->orderBy('level', 'desc')->orderBy('kode')->get();
+        $classes = Classroom::with('wali', 'batch')->withCount('students')->orderBy('level', 'desc')->orderBy('kode')->get();
         $class = $classes->firstWhere('kode', $request->query('kelas')) ?? $classes->firstWhere('kode', 'N4-A') ?? $classes->first();
 
         return view('admin.kelas', [
             'classes' => $classes,
             'class' => $class,
             'grid' => $class?->grid() ?? [],
+            'batches' => Batch::orderBy('mulai')->get(),
             'instructors' => User::where('role', 'instruktur')->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
@@ -31,6 +33,7 @@ class KelasAdminController extends Controller
     {
         $request->merge(['kode' => strtoupper(trim((string) $request->input('kode')))]);
         $data = $request->validate([
+            'batch_id' => ['required', 'exists:batches,id'],
             'kode' => ['required', 'regex:/^N[1-5]-[A-Z]$/', 'unique:classrooms,kode'],
             'level' => ['required', Rule::in(Catalog::LEVELS)],
             'wali_id' => ['required', 'exists:users,id'],
@@ -38,6 +41,7 @@ class KelasAdminController extends Controller
         ], [
             'kode.regex' => 'Format kode: level-huruf, mis. N5-D.',
             'kode.unique' => 'Kelas :input sudah ada.',
+            'batch_id.required' => 'Pilih angkatan kelas ini.',
         ]);
         $start = now()->addMonth()->startOfMonth();
         $c = Classroom::create($data + ['periode' => \App\Support\Fmt::monthYear($start) . ' – ' . \App\Support\Fmt::monthYear($start->copy()->addMonths(5))]);

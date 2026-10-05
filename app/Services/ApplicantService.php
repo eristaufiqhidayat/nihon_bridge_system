@@ -7,6 +7,7 @@ use App\Models\Applicant;
 use App\Models\Classroom;
 use App\Models\Student;
 use App\Models\User;
+use App\Support\Fmt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -89,7 +90,9 @@ class ApplicantService
                 'nis' => $this->nextNis(),
                 'program' => $a->program,
                 'stage' => 1,
-                'birth_place_date' => $a->ttl,
+                'batch_id' => $class->batch_id,
+                'birth_place' => $a->asal,
+                'birth_date' => Fmt::parseDate(trim(explode(',', (string) $a->ttl, 2)[1] ?? '')),
                 'materi_total' => Student::whereHas('classroom', fn ($c) => $c->where('level', $class->level))->max('materi_total') ?? 0,
             ]);
             $a->update(['status' => 'diterima', 'classroom_id' => $class->id, 'user_id' => $user->id]);

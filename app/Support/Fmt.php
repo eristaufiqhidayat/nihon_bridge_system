@@ -82,6 +82,29 @@ class Fmt
         return $d ? self::MONTHS_SHORT[$d->month - 1] . ' ' . $d->year : '–';
     }
 
+    /**
+     * Urai tanggal berbahasa Indonesia ("14 Mei 2002", "30 0ktober 2002", "7 Des 2004") atau ISO ke Y-m-d.
+     * Mengembalikan null bila tidak lengkap (mis. hanya tahun) atau tidak bisa diurai.
+     */
+    public static function parseDate(?string $text): ?string
+    {
+        $text = trim((string) $text);
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $text, $m)) {
+            return checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ? "$m[1]-$m[2]-$m[3]" : null;
+        }
+        if (! preg_match('/^(\d{1,2})\s+([[:alpha:]0]+)\.?\s+(\d{4})$/u', $text, $m)) {
+            return null;
+        }
+        $name = mb_strtolower(preg_replace('/^0/', 'o', $m[2])); // typo angka nol: "0ktober"
+        foreach (self::MONTHS as $i => $month) {
+            if (str_starts_with(mb_strtolower($month), mb_substr($name, 0, 3)) && mb_strlen($name) >= 3) {
+                return checkdate($i + 1, (int) $m[1], (int) $m[3]) ? sprintf('%04d-%02d-%02d', $m[3], $i + 1, $m[1]) : null;
+            }
+        }
+
+        return null;
+    }
+
     /** Waktu relatif ringkas untuk pesan & notifikasi: "Baru saja", "10:20", "Kemarin, 19:30", "Sab, 08:12", "25 Sep, 10:00". */
     public static function chatTime($d): string
     {

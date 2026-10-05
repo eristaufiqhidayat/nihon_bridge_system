@@ -37,6 +37,21 @@ DB_PASSWORD=
 
 Buat database `nihon_bridge` (utf8mb4), lalu `php artisan migrate:fresh --seed`.
 
+## Data peserta asli (impor Excel)
+
+`DataSiswaSeeder` memasukkan 33 peserta Angkatan 1–4 beserta 70 tahap pembayaran dari
+"DATA SISWA LPK NIHON BRIDGE.xlsx". Data pribadinya **tidak disimpan di repo**: salin
+`data_siswa.json` ke `database/seeders/data/data_siswa.json` (sudah di-.gitignore), lalu:
+
+```bash
+php artisan migrate
+php artisan db:seed --class=DataSiswaSeeder
+```
+
+Password awal semua peserta impor: `password`. Mereka wajib membuat password baru saat login pertama.
+Peserta tanpa email memakai email sementara `nb-xx-xxxx@siswa.nihonbridge.local` dan akunnya nonaktif
+sampai admin melengkapi email dan mengaktifkannya. Seeder aman dijalankan ulang.
+
 ## Akun demo
 
 Semua password: **`sakura2026`**
@@ -82,7 +97,7 @@ Semua angka ini ada di `config/nihonbridge.php`.
 | Controller | `app/Http/Controllers/{Auth,Peserta,Instruktur,Admin,Shared,Publik}` |
 | Middleware peran | `app/Http/Middleware/EnsureRole.php` (alias `role:admin,direktur`) |
 | Routes | `routes/web.php` |
-| Migrasi | `database/migrations` (akademik, materi, ujian, operasional, komunikasi) |
+| Migrasi | `database/migrations` (akademik, materi, ujian, operasional, komunikasi, program → angkatan → kelas → peserta) |
 | Seeder | `database/seeders` (data contoh dari mockup, termasuk 30 soal simulasi JLPT N4 di `database/seeders/data/questions.php`) |
 | View Blade | `resources/views/{layouts,auth,peserta,instruktur,admin,shared,publik,partials,components}` |
 | CSS/JS | `public/css/app.css`, `public/js/app.js`, `public/js/cbt.js` |

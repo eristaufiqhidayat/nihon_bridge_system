@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureRole;
 use App\Support\Catalog;
 use Illuminate\Foundation\Application;
@@ -15,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['role' => EnsureRole::class]);
+        $middleware->alias(['role' => EnsureRole::class, 'password.changed' => EnsurePasswordChanged::class]);
         $middleware->redirectUsersTo(fn (Request $request) => route(Catalog::HOME[$request->user()->role] ?? 'profil.show'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

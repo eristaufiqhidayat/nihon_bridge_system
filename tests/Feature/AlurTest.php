@@ -145,4 +145,41 @@ class AlurTest extends TestCase
         $this->delete(route('banksoal.destroy', $q))->assertRedirect();
         $this->assertSoftDeleted($q);
     }
+
+    public function test_biodata_peserta_dan_kelas_per_angkatan(): void
+    {
+        $s = Student::where('nis', 'NB-26-0142')->first();
+        $this->actingAs($s->user);
+        $this->put(route('profil.update'), [
+            'name' => $s->user->name, 'email' => $s->user->email, 'phone' => $s->user->phone,
+            'birth_place' => 'Palembang', 'birth_date' => '2002-05-14', 'gender' => 'L', 'height_cm' => 171, 'religion' => 'Islam',
+            'marital_status' => 'belum', 'address_ktp' => 'Jl. KTP No. 1', 'address_domicile' => 'Jl. Domisili No. 2',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $s->refresh();
+        $this->assertSame('Jl. KTP No. 1', $s->address_ktp);
+        $this->assertSame('Jl. Domisili No. 2', $s->address_domicile);
+        $this->assertSame('Palembang, 14 Mei 2002', $s->ttl);
+        $this->assertNotNull($s->batch->program);
+
+        $this->actingAs(User::where('role', 'admin')->first());
+        $batch = \App\Models\Batch::first();
+        $this->post(route('kelas-admin.store'), ['kode' => 'N5-Z', 'level' => 'N5', 'wali_id' => User::where('role', 'instruktur')->first()->id])
+            ->assertSessionHasErrors('batch_id');
+        $this->post(route('kelas-admin.store'), ['batch_id' => $batch->id, 'kode' => 'N5-Z', 'level' => 'N5', 'wali_id' => User::where('role', 'instruktur')->first()->id])
+            ->assertRedirect();
+        $this->assertSame($batch->id, Classroom::where('kode', 'N5-Z')->first()->batch_id);
+    }
+
+    public function test_wajib_ganti_password_saat_login_pertama(): void
+    {
+        $u = User::where('role', 'peserta')->first();
+        $u->update(['password' => \Illuminate\Support\Facades\Hash::make('password'), 'must_change_password' => true]);
+        $this->post('/login', ['email' => $u->email, 'password' => 'password'])->assertRedirect(route('dashboard'));
+        $this->get('/dashboard')->assertRedirect(route('password.first'));
+        $this->get(route('password.first'))->assertOk()->assertSee('Buat password baru');
+        $this->put(route('password.first.update'), ['password' => 'password', 'password_confirmation' => 'password'])->assertSessionHasErrors('password');
+        $this->put(route('password.first.update'), ['password' => 'sakura2027', 'password_confirmation' => 'sakura2027'])->assertRedirect(route('dashboard'));
+        $this->assertFalse($u->fresh()->must_change_password);
+        $this->get('/dashboard')->assertOk();
+    }
 }

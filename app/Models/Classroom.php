@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Classroom extends Model
 {
-    protected $fillable = ['kode', 'level', 'nama', 'wali_id', 'ruang', 'periode'];
+    protected $fillable = ['batch_id', 'kode', 'level', 'nama', 'wali_id', 'ruang', 'periode'];
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(Batch::class);
+    }
 
     public function wali(): BelongsTo
     {

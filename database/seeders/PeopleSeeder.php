@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Batch;
 use App\Models\Classroom;
+use App\Models\Program;
 use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\User;
@@ -36,6 +38,19 @@ class PeopleSeeder extends Seeder
         $mk('Rina Wulandari', 'rina.info@nihonbridge.id', 'admin', '0811-9087-1122');
         $mk(config('nihonbridge.org.director'), 'direktur@nihonbridge.id', 'direktur', '[No. HP Direktur]');
 
+        // Program kursus → batch (angkatan) → kelas → peserta
+        $program = Program::create([
+            'kode' => 'BJ-KERJA', 'nama' => 'Pelatihan Bahasa Jepang & Persiapan Kerja', 'biaya' => 8000000, 'durasi_bulan' => 6,
+            'deskripsi' => 'Bahasa Jepang N5–N4 dan pembekalan budaya kerja sebelum penempatan ke Jepang',
+        ]);
+        $batch = [];
+        foreach ([[1, '2025-09', '2025-09-15'], [2, '2026-01', '2026-01-05'], [3, '2026-05', '2026-05-18'], [4, '2026-09', '2026-09-14']] as [$no, $kode, $mulai]) {
+            $batch[$no] = Batch::create([
+                'program_id' => $program->id, 'kode' => $kode, 'nama' => "Angkatan $no",
+                'mulai' => $mulai, 'selesai' => \Illuminate\Support\Carbon::parse($mulai)->addMonths(6)->subDay(),
+            ]);
+        }
+
         // Kelas & jadwal (kode mapel-instruktur per slot, Senin–Jumat)
         $classes = [
             ['N5-A', 'N5', 'Y', '1A', 'Jul – Des 2026', ['TB-Y TB-Y TB-Y TB-Y TB-Y', 'KK-D KK-D KK-D KK-D KK-D', 'PC-K BD-D PC-K BD-D PC-K']],
@@ -48,6 +63,7 @@ class PeopleSeeder extends Seeder
         $cls = [];
         foreach ($classes as [$kode, $level, $wali, $ruang, $periode, $rows]) {
             $c = Classroom::create([
+                'batch_id' => $batch[str_starts_with($periode, 'Sep') ? 4 : 3]->id,
                 'kode' => $kode, 'level' => $level, 'wali_id' => $ins[$wali]->id, 'ruang' => $ruang, 'periode' => $periode,
                 'nama' => $level === 'N4' ? 'Pemantapan N4' : ($level === 'N5' ? 'Dasar N5' : 'Menengah N3'),
             ]);
@@ -83,13 +99,22 @@ class PeopleSeeder extends Seeder
             $isAhmad = $e === 'ahmad.fauzi';
             Student::create([
                 'user_id' => $u->id,
+                'batch_id' => $cls['N4-A']->batch_id,
                 'classroom_id' => $cls['N4-A']->id,
                 'nis' => $nis,
                 'program' => $prog,
                 'stage' => $stage,
                 'stage_dates' => $isAhmad ? ['10 Jan 2026', 'Feb – Agu 2026', '10 Sep 2026', 'Jadwal 8 Okt 2026', 'Target Nov 2026', 'Target Jan 2027', 'Rencana Mar 2027'] : null,
-                'birth_place_date' => $isAhmad ? 'Palembang, 14 Mei 2002' : null,
-                'address' => $isAhmad ? 'Jl. KH Azhari No. 12, Seberang Ulu II, Palembang' : null,
+                'birth_place' => $isAhmad ? 'Palembang' : null,
+                'birth_date' => $isAhmad ? '2002-05-14' : null,
+                'gender' => in_array($e, ['siti.r', 'dewi.l', 'nur.a', 'yuni.p', 'mega.f', 'rani.o'], true) ? 'P' : 'L',
+                'religion' => $isAhmad ? 'Islam' : null,
+                'marital_status' => $isAhmad ? 'belum' : null,
+                'height_cm' => $isAhmad ? 170 : null,
+                'address_ktp' => $isAhmad ? 'Jl. KH Azhari No. 12, Seberang Ulu II, Palembang' : null,
+                'address_domicile' => $isAhmad ? 'Jl. KH Azhari No. 12, Seberang Ulu II, Palembang' : null,
+                'class_start' => $batch[3]->mulai,
+                'total_fee' => $program->biaya,
                 'guardian_contact' => $isAhmad ? 'Sulastri (ibu) · 0812-7788-9900' : null,
                 'note' => $note,
                 'nilai_tryout' => $nilai,
@@ -101,8 +126,8 @@ class PeopleSeeder extends Seeder
 
         // Peserta kelas lain
         $fajar = $mk('Fajar Nugroho', 'fajar.n@nihonbridge.id', 'peserta', '0812-1111-2290', false);
-        Student::create(['user_id' => $fajar->id, 'classroom_id' => $cls['N5-B']->id, 'nis' => 'NB-26-0090', 'program' => 'Magang (Ginou Jisshu) · Manufaktur', 'stage' => 1, 'materi_total' => 90, 'materi_selesai' => 30]);
+        Student::create(['user_id' => $fajar->id, 'batch_id' => $cls['N5-B']->batch_id, 'classroom_id' => $cls['N5-B']->id, 'nis' => 'NB-26-0090', 'program' => 'Magang (Ginou Jisshu) · Manufaktur', 'stage' => 1, 'materi_total' => 90, 'materi_selesai' => 30]);
         $lina = $mk('Lina Marlina', 'lina.marlina@nihonbridge.id', 'peserta', '0878-2323-6060');
-        Student::create(['user_id' => $lina->id, 'classroom_id' => $cls['N5-C']->id, 'nis' => 'NB-26-0162', 'program' => 'Tokutei Ginou · Kaigo', 'stage' => 1, 'birth_place_date' => 'Bogor, 2004', 'materi_total' => 90]);
+        Student::create(['user_id' => $lina->id, 'batch_id' => $cls['N5-C']->batch_id, 'classroom_id' => $cls['N5-C']->id, 'nis' => 'NB-26-0162', 'program' => 'Tokutei Ginou · Kaigo', 'stage' => 1, 'birth_place' => 'Bogor', 'gender' => 'P', 'class_mode' => 'online', 'materi_total' => 90]);
     }
 }

@@ -7,9 +7,9 @@
 @section('content')
 <div class="page">
   <div class="page-head"><div><h2>Kelas &amp; Jadwal</h2><p>{{ $classes->count() }} kelas aktif · klik sel jadwal untuk mengubah</p></div><button class="bt solid" type="button" data-modal-open="classModal">+ Kelas baru</button></div>
-  <div class="card mb16" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Kelas</th><th>Wali kelas</th><th>Peserta</th><th>Ruang</th><th>Periode</th></tr></thead><tbody>
+  <div class="card mb16" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Kelas</th><th>Angkatan</th><th>Wali kelas</th><th>Peserta</th><th>Ruang</th><th>Periode</th></tr></thead><tbody>
     @foreach ($classes as $k)
-      <tr class="clickable {{ $class && $k->id === $class->id ? 'sel' : '' }}" onclick="location.href='{{ route('kelas-admin.index', ['kelas' => $k->kode]) }}'"><td><span class="badge {{ Catalog::LV_BADGE[$k->level] }}">{{ $k->kode }}</span></td><td>{{ $k->wali?->name ?? '–' }}</td><td class="tnum">{{ $k->students_count }}</td><td>{{ $k->ruang }}</td><td class="small">{{ $k->periode }}</td></tr>
+      <tr class="clickable {{ $class && $k->id === $class->id ? 'sel' : '' }}" onclick="location.href='{{ route('kelas-admin.index', ['kelas' => $k->kode]) }}'"><td><span class="badge {{ Catalog::LV_BADGE[$k->level] }}">{{ $k->kode }}</span></td><td class="small">{{ $k->batch?->nama ?? '–' }}</td><td>{{ $k->wali?->name ?? '–' }}</td><td class="tnum">{{ $k->students_count }}</td><td>{{ $k->ruang }}</td><td class="small">{{ $k->periode }}</td></tr>
     @endforeach
   </tbody></table></div></div>
   @if ($class)
@@ -49,6 +49,7 @@
     <div class="opt-grid">
       <div class="field"><label for="ncKode">Kode kelas</label><input id="ncKode" name="kode" value="{{ old('kode') }}" placeholder="mis. N5-D"></div>
       <div class="field"><label for="ncLvl">Level</label><select id="ncLvl" name="level">@foreach (['N5', 'N4', 'N3', 'N2', 'N1'] as $l)<option @selected(old('level') === $l)>{{ $l }}</option>@endforeach</select></div>
+      <div class="field"><label for="ncBatch">Angkatan</label><select id="ncBatch" name="batch_id">@foreach ($batches as $b)<option value="{{ $b->id }}" @selected((string) old('batch_id', $batches->last()?->id) === (string) $b->id)>{{ $b->nama }} · {{ $b->periode }}</option>@endforeach</select></div>
       <div class="field"><label for="ncWali">Wali kelas</label><select id="ncWali" name="wali_id">@foreach ($instructors as $i)<option value="{{ $i->id }}">{{ $i->name }}</option>@endforeach</select></div>
       <div class="field"><label for="ncRuang">Ruang</label><input id="ncRuang" name="ruang" value="{{ old('ruang') }}" placeholder="mis. 2A"></div></div>
     <div class="modal-actions"><button type="button" class="cancel" data-modal-close>Batal</button><button class="ok" type="submit">Buat kelas</button></div>
