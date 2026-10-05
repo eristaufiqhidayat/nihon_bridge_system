@@ -10,7 +10,7 @@
 @section('content')
 <div class="page">
   <div class="page-head"><div><h2>Kelas {{ $class->kode }}@if ($class->nama) · {{ $class->nama }}@endif</h2>
-    <p>{{ $isInstructor && $class->wali_id === auth()->id() ? 'Anda wali kelas ini' : 'Wali kelas: ' . ($class->wali?->sensei_name ?? '–') }} · {{ $class->students->count() }} peserta · Ruang {{ $class->ruang }} · Periode {{ $class->periode }}</p></div>
+    <p>{{ $isInstructor && $class->wali_id === auth()->id() ? 'Anda wali kelas ini' : 'Wali kelas: ' . ($class->wali?->sensei_name ?? '–') }} · {{ $class->students->count() }} peserta · {{ $class->batch?->nama ?? 'Angkatan –' }} · Ruang {{ $class->ruang }} · Periode {{ $class->periode }}</p></div>
     @if ($isInstructor)<a class="bt solid" href="{{ route('monitoring.index', ['kelas' => $class->id]) }}">👥 Monitoring peserta kelas</a>@endif
   </div>
 

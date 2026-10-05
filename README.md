@@ -82,7 +82,7 @@ Semua angka ini ada di `config/nihonbridge.php`.
 | Controller | `app/Http/Controllers/{Auth,Peserta,Instruktur,Admin,Shared,Publik}` |
 | Middleware peran | `app/Http/Middleware/EnsureRole.php` (alias `role:admin,direktur`) |
 | Routes | `routes/web.php` |
-| Migrasi | `database/migrations` (akademik, materi, ujian, operasional, komunikasi) |
+| Migrasi | `database/migrations` (akademik, materi, ujian, operasional, komunikasi, program → angkatan → kelas → peserta) |
 | Seeder | `database/seeders` (data contoh dari mockup, termasuk 30 soal simulasi JLPT N4 di `database/seeders/data/questions.php`) |
 | View Blade | `resources/views/{layouts,auth,peserta,instruktur,admin,shared,publik,partials,components}` |
 | CSS/JS | `public/css/app.css`, `public/js/app.js`, `public/js/cbt.js` |

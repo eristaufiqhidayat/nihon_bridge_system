@@ -11,18 +11,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Student extends Model
 {
     protected $fillable = [
-        'user_id', 'classroom_id', 'nis', 'program', 'stage', 'stage_dates', 'birth_place_date', 'address',
-        'guardian_contact', 'note', 'nilai_tryout', 'materi_selesai', 'materi_total', 'target_departure',
+        'user_id', 'batch_id', 'classroom_id', 'nis', 'program', 'stage', 'stage_dates', 'guardian_contact', 'note',
+        'nilai_tryout', 'materi_selesai', 'materi_total', 'target_departure',
+        // biodata
+        'birth_place', 'birth_date', 'gender', 'height_cm', 'religion', 'marital_status', 'passport_no',
+        'address_ktp', 'address_domicile',
+        // keikutsertaan
+        'class_mode', 'class_start', 'class_end', 'enrollment_status', 'total_fee',
     ];
 
     protected function casts(): array
     {
-        return ['stage_dates' => 'array', 'stage' => 'integer'];
+        return [
+            'stage_dates' => 'array', 'stage' => 'integer', 'birth_date' => 'date', 'class_start' => 'date', 'class_end' => 'date',
+            'height_cm' => 'integer', 'total_fee' => 'integer',
+        ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(Batch::class);
     }
 
     public function classroom(): BelongsTo
@@ -53,6 +66,12 @@ class Student extends Model
     public function getNameAttribute(): string
     {
         return $this->user->name;
+    }
+
+    /** "Palembang, 14 Mei 2002" */
+    public function getTtlAttribute(): string
+    {
+        return implode(', ', array_filter([$this->birth_place, $this->birth_date ? Fmt::dateLong($this->birth_date) : null])) ?: '–';
     }
 
     public function getInitialsAttribute(): string

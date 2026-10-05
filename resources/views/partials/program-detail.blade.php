@@ -2,7 +2,7 @@
 <?php $np = \App\Support\Fmt::pct($student->stage, count(\App\Support\Catalog::STAGES)); ?>
 <div class="card pad mb16">
   <div class="mon-profile"><div class="av lg">{{ $student->initials }}</div>
-    <div style="flex:1;min-width:200px"><h4>{{ $student->name }}</h4><p>NIS {{ $student->nis }} · Kelas {{ $student->classroom?->kode ?? '–' }} · {{ $student->program }}</p></div>
+    <div style="flex:1;min-width:200px"><h4>{{ $student->name }}</h4><p>NIS {{ $student->nis }} · {{ $student->batch?->nama ?? 'Angkatan –' }} · Kelas {{ $student->classroom?->kode ?? '–' }} · {{ $student->program }}</p></div>
     <div style="text-align:right"><span class="small muted">Nilai tryout terakhir</span><br><b style="font-size:20px" class="tnum">{{ $student->nilai }}</b></div></div>
   <p style="font-size:12.5px;font-weight:700;margin:16px 0 6px;display:flex;justify-content:space-between">Progres program <span class="tnum">{{ $student->stage }} dari {{ count(\App\Support\Catalog::STAGES) }} tahap ({{ $np }}%)</span></p>
   <div class="progress-track"><div class="progress-fill" style="width:{{ $np }}%"></div></div>

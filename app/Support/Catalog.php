@@ -98,7 +98,18 @@ class Catalog
         'Magang · Konstruksi' => 'Ginou Jisshu · bangunan dan sipil',
     ];
 
-    public const EDUCATION = ['SMP', 'SMA/SMK', 'D3', 'S1'];
+    /** Biodata peserta. */
+    public const GENDERS = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
+
+    public const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
+
+    public const MARITAL = ['belum' => 'Belum menikah', 'menikah' => 'Menikah', 'cerai' => 'Cerai'];
+
+    public const CLASS_MODES = ['tatap_muka' => 'Tatap muka', 'online' => 'Online'];
+
+    public const ENROLLMENT = ['aktif' => 'Aktif', 'keluar' => 'Keluar', 'lulus' => 'Lulus'];
+
+    public const EDUCATION =['SMP', 'SMA/SMK', 'D3', 'S1'];
 
     public const JP_LEVEL = ['Belum pernah belajar', 'Pernah belajar sendiri', 'Setara N5', 'Setara N4 atau lebih'];
 
