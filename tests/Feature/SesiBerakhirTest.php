@@ -46,7 +46,7 @@ class SesiBerakhirTest extends TestCase
     public function test_form_saat_masih_login_kembali_ke_halaman_sebelumnya(): void
     {
         $this->actingAs(User::where('role', 'admin')->first());
-        $this->withCsrf()->from('/keuangan')->post('/keuangan/bayar', ['_token' => 'basi'])->assertRedirect('/keuangan');
+        $this->withCsrf()->from('/data-pembayaran')->post('/data-pembayaran', ['_token' => 'basi'])->assertRedirect('/data-pembayaran');
     }
 
     public function test_autosave_json_mendapat_419_json(): void

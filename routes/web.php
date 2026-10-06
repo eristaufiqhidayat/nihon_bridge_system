@@ -140,10 +140,12 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::post('/perusahaan/job-order/{job}/kandidat/{student}', [Admin\PerusahaanController::class, 'addCandidate'])->name('perusahaan.candidate.add');
         Route::patch('/perusahaan/kandidat/{candidate}', [Admin\PerusahaanController::class, 'setInterview'])->name('perusahaan.candidate.update');
 
-        Route::post('/keuangan/bayar', [Admin\KeuanganController::class, 'record'])->name('keuangan.record');
+        Route::get('/data-pembayaran', [Admin\PembayaranController::class, 'index'])->name('pembayaran-admin.index');
+        Route::post('/data-pembayaran', [Admin\PembayaranController::class, 'store'])->name('pembayaran-admin.store');
+        Route::put('/data-pembayaran/{payment}', [Admin\PembayaranController::class, 'update'])->name('pembayaran-admin.update');
+        Route::delete('/data-pembayaran/{payment}', [Admin\PembayaranController::class, 'destroy'])->name('pembayaran-admin.destroy');
+
         Route::post('/keuangan/{payment}/verifikasi', [Admin\KeuanganController::class, 'verify'])->name('keuangan.verify');
-        Route::put('/keuangan/{payment}', [Admin\KeuanganController::class, 'update'])->name('keuangan.update');
-        Route::delete('/keuangan/{payment}', [Admin\KeuanganController::class, 'destroy'])->name('keuangan.destroy');
         Route::get('/keuangan/{payment}/bukti', [Admin\KeuanganController::class, 'proof'])->name('keuangan.proof');
         Route::post('/keuangan/pengingat/{student}', [Admin\KeuanganController::class, 'remind'])->name('keuangan.remind');
     });
