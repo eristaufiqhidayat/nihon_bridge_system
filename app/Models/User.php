@@ -77,7 +77,7 @@ class User extends Authenticatable
     /** Route halaman awal setelah login. */
     public function homeRoute(): string
     {
-        return Catalog::HOME[$this->role] ?? $this->roleInfo?->homeRoute() ?? 'profil.show';
+        return $this->roleInfo?->homeRoute() ?? Catalog::HOME[$this->role] ?? 'profil.show';
     }
 
     /** Menu sidebar sesuai peran. */

@@ -6,7 +6,7 @@
 <?php $r = $role; ?>
 <div class="page">
   <div class="page-head"><div><h2>{{ $r->exists ? 'Edit role · ' . $r->name : 'Tambah role' }}</h2>
-    <p>{{ $r->is_system ? 'Peran bawaan sistem: nama dan keterangan bisa diubah, menunya tetap.' : 'Pilih menu yang boleh dibuka pengguna dengan peran ini. Pesan dan Profil selalu tersedia.' }}</p></div>
+    <p>{{ $r->is_system ? 'Peran bawaan sistem: tidak bisa dihapus, tapi nama, keterangan, dan menunya bisa diatur.' : 'Pilih menu yang boleh dibuka pengguna dengan peran ini.' }}</p></div>
     <a class="bt outline" href="{{ route('role-admin.index') }}">‹ Kembali ke daftar</a></div>
 
   <form method="POST" action="{{ $r->exists ? route('role-admin.update', $r) : route('role-admin.store') }}" novalidate class="grid" style="gap:16px">
@@ -20,16 +20,16 @@
       </div></div>
 
     <div class="card pad"><h4 class="ct">Akses menu</h4>
-      @if ($r->is_system)
-        <p class="small">{{ collect($r->menuItems())->map(fn ($m) => $m[1] . ' ' . $m[2])->join(' · ') }}</p>
-      @else
-        <div class="grid g3" style="gap:8px">
-          @foreach ($options as [$route, $ic, $label])
+      <div class="grid g3" style="gap:8px">
+        @foreach ($options as [$route, $ic, $label])
+          @if (in_array($route, $locked, true))
+            <label class="check" title="Selalu aktif untuk {{ $r->name }}"><input type="checkbox" checked disabled> {{ $ic }} {{ $label }} <span class="small muted">(wajib)</span></label>
+          @else
             <label class="check"><input type="checkbox" name="menus[]" value="{{ $route }}" @checked(in_array($route, $picked, true))> {{ $ic }} {{ $label }}</label>
-          @endforeach
-        </div>
-        <p class="rule-note">Pengguna dengan peran ini bisa membuka dan mengubah data di menu yang dipilih, sama seperti admin.</p>
-      @endif
+          @endif
+        @endforeach
+      </div>
+      <p class="rule-note">Pesan dan Profil selalu tersedia. Pengguna dengan peran ini bisa membuka dan mengubah data di menu yang dicentang; menu yang tidak dicentang tertutup untuknya.</p>
     </div>
 
     <div><button class="bt solid" type="submit">{{ $r->exists ? 'Simpan perubahan' : 'Simpan role' }}</button></div>

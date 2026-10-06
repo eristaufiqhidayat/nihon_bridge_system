@@ -8,15 +8,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Batasi rute untuk peran tertentu. Pemakaian: ->middleware('role:admin,direktur')
- * Peran tambahan diizinkan bila rute termasuk menu yang dipilih untuknya (Role::allowsRoute).
+ * Menu yang dicentang/dilepas di Data Role ikut membuka/menutup rute (Role::allowsRoute, Role::deniesRoute).
  */
 class EnsureRole
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();
-        // Peran tambahan (dari menu Data Role) boleh membuka rute milik menu yang dipilih untuknya.
-        $allowed = $user && (in_array($user->role, $roles, true) || $user->roleInfo?->allowsRoute($request->route()?->getName()));
+        // Menu tiap peran diatur di Data Role: menu tambahan membuka rutenya, menu bawaan yang dilepas menutupnya.
+        $route = $request->route()?->getName();
+        $role = $user?->roleInfo;
+        $allowed = $user && ($role?->allowsRoute($route) || (in_array($user->role, $roles, true) && ! $role?->deniesRoute($route)));
         abort_unless($allowed, 403, 'Halaman ini tidak tersedia untuk peran Anda.');
 
         return $next($request);
