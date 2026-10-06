@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="page">
-  <div class="page-head"><div><h2>Data Role</h2><p>{{ $list->count() }} peran. Tiap peran menentukan menu yang bisa dibuka penggunanya. Ganti peran pengguna di Dashboard Admin.</p></div>
+  <div class="page-head"><div><h2>Data Role</h2><p>{{ $list->count() }} peran. Tiap peran menentukan menu yang bisa dibuka penggunanya. Ganti peran pengguna di Data Pengguna.</p></div>
     <a class="bt solid" href="{{ route('role-admin.create') }}">+ Tambah role</a></div>
   @error('hapus')<div class="form-error mb16" role="alert">{{ $message }}</div>@enderror
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>

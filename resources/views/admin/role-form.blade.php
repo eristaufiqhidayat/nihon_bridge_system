@@ -39,7 +39,7 @@
   <div class="card pad" style="margin-top:16px"><h4 class="ct">Hapus role</h4>
     @error('hapus')<div class="form-error" role="alert">{{ $message }}</div>@enderror
     @if ($r->users_count)
-      <p class="small">Peran ini belum bisa dihapus karena masih dipakai <b>{{ $r->users_count }} pengguna</b>. Ganti peran mereka di Dashboard Admin lebih dulu.</p>
+      <p class="small">Peran ini belum bisa dihapus karena masih dipakai <b>{{ $r->users_count }} pengguna</b>. Ganti peran mereka di Data Pengguna lebih dulu.</p>
     @else
       <p class="small muted">Belum ada pengguna dengan peran ini. Peran akan dihapus permanen.</p>
     @endif

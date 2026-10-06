@@ -88,7 +88,7 @@ class DataRoleTest extends TestCase
         $this->get('/kehadiran')->assertOk();
     }
 
-    public function test_admin_tidak_bisa_melepas_dashboard_dan_data_role(): void
+    public function test_admin_tidak_bisa_melepas_dashboard_data_pengguna_dan_data_role(): void
     {
         $this->admin();
         $admin = Role::where('key', 'admin')->firstOrFail();
@@ -97,7 +97,7 @@ class DataRoleTest extends TestCase
         $this->put("/data-role/{$admin->id}", ['name' => 'Administrator', 'menus' => ['keuangan.index']])->assertSessionHasNoErrors();
         $admin->refresh();
         $this->assertSame('Administrator', $admin->name);
-        $this->assertEqualsCanonicalizing(['admin.dashboard', 'role-admin.index', 'keuangan.index'], $admin->menus);
+        $this->assertEqualsCanonicalizing(['admin.dashboard', 'pengguna-admin.index', 'role-admin.index', 'keuangan.index'], $admin->menus);
 
         $this->actingAs(User::where('role', 'admin')->firstOrFail()); // muat ulang peran
         $this->get('/admin')->assertOk()->assertDontSee(route('angkatan.index'));
@@ -112,7 +112,7 @@ class DataRoleTest extends TestCase
         $role = Role::create(['key' => 'staf', 'name' => 'Staf', 'menus' => ['laporan.index']]);
         $this->staff('staf');
 
-        $this->delete("/data-role/{$role->id}")->assertSessionHasErrors(['hapus' => 'Peran Staf tidak bisa dihapus karena masih dipakai 1 pengguna. Ganti peran pengguna tersebut di Dashboard Admin lebih dulu.']);
+        $this->delete("/data-role/{$role->id}")->assertSessionHasErrors(['hapus' => 'Peran Staf tidak bisa dihapus karena masih dipakai 1 pengguna. Ganti peran pengguna tersebut di Data Pengguna lebih dulu.']);
         $this->assertModelExists($role);
     }
 

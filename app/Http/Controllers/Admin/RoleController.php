@@ -59,7 +59,7 @@ class RoleController extends Controller
         $n = $role->users()->count();
         if ($n) {
             return back()->withErrors([
-                'hapus' => "Peran {$role->name} tidak bisa dihapus karena masih dipakai {$n} pengguna. Ganti peran pengguna tersebut di Dashboard Admin lebih dulu.",
+                'hapus' => "Peran {$role->name} tidak bisa dihapus karena masih dipakai {$n} pengguna. Ganti peran pengguna tersebut di Data Pengguna lebih dulu.",
             ]);
         }
 

@@ -18,7 +18,7 @@
   </div>
   <div class="grid g-admin">
     <div class="card" style="padding:0">
-      <div class="pad" style="padding-bottom:6px"><div class="sh"><h4>Pengguna</h4><span class="small muted">{{ $users->where('is_active', true)->count() }} aktif dari {{ $users->count() }}</span></div></div>
+      <div class="pad" style="padding-bottom:6px"><div class="sh"><h4>Pengguna</h4><span class="small muted">{{ $users->where('is_active', true)->count() }} aktif dari {{ $users->count() }} · <a class="linkbtn" href="{{ route('pengguna-admin.index') }}">Kelola di Data Pengguna</a></span></div></div>
       <div class="tbl-wrap" style="max-height:560px;overflow:auto"><table><thead><tr><th>Nama</th><th>Peran</th><th>Kelas</th><th>Status</th></tr></thead><tbody>
         @foreach ($users as $u)
           <tr><td><b>{{ $u->name }}</b><br><span class="small muted">{{ $u->email }}</span></td>
