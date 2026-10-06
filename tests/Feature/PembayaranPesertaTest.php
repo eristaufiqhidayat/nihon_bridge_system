@@ -9,9 +9,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Keuangan (admin): edit dan hapus catatan pembayaran peserta.
+ * Menu Pembayaran Peserta (admin): entri per peserta, cari nama, edit dan hapus.
  */
-class KeuanganPembayaranTest extends TestCase
+class PembayaranPesertaTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -38,18 +38,24 @@ class KeuanganPembayaranTest extends TestCase
         return $s;
     }
 
-    public function test_riwayat_tampil_dan_hanya_admin_yang_bisa_mengubah(): void
+    public function test_menu_hanya_admin_dan_bisa_cari_nama(): void
     {
         $s = $this->studentWithPayments();
         $p = $s->payments()->first();
+        $other = Student::where('id', '!=', $s->id)->firstOrFail();
 
         $this->actingAs(User::where('role', 'direktur')->first());
-        $this->get(route('keuangan.index'))->assertOk()->assertSee('Riwayat pembayaran')->assertDontSee(route('keuangan.destroy', $p));
-        $this->put(route('keuangan.update', $p), ['method' => 'Tunai di kantor', 'paid_at' => '2026-01-11'])->assertForbidden();
-        $this->delete(route('keuangan.destroy', $p))->assertForbidden();
+        $this->get(route('pembayaran-admin.index'))->assertForbidden();
+        $this->get(route('keuangan.index'))->assertOk()->assertDontSee(route('pembayaran-admin.destroy', $p));
+        $this->put(route('pembayaran-admin.update', $p), ['method' => 'Tunai di kantor', 'paid_at' => '2026-01-11'])->assertForbidden();
+        $this->delete(route('pembayaran-admin.destroy', $p))->assertForbidden();
 
         $this->admin();
-        $this->get(route('keuangan.index'))->assertOk()->assertSee(route('keuangan.destroy', $p));
+        // Edit & hapus tidak lagi ada di menu Keuangan.
+        $this->get(route('keuangan.index'))->assertOk()->assertDontSee(route('pembayaran-admin.destroy', $p))->assertSee(route('pembayaran-admin.index'));
+        $this->get(route('pembayaran-admin.index'))->assertOk()->assertSee('Pembayaran Peserta')->assertSee(route('pembayaran-admin.destroy', $p));
+        $this->get(route('pembayaran-admin.index', ['q' => $s->user->name]))->assertOk()
+            ->assertSee($s->nis)->assertSee(route('pembayaran-admin.destroy', $p))->assertDontSee($other->nis . ' · ', false);
     }
 
     public function test_edit_pembayaran(): void
@@ -57,15 +63,15 @@ class KeuanganPembayaranTest extends TestCase
         $this->admin();
         $p = $this->studentWithPayments()->payments()->where('installment_no', 2)->first();
 
-        $this->from(route('keuangan.index'))
-            ->put(route('keuangan.update', $p), ['method' => 'Tunai di kantor', 'paid_at' => '2026-02-15'])
-            ->assertRedirect(route('keuangan.index'));
+        $this->from(route('pembayaran-admin.index'))
+            ->put(route('pembayaran-admin.update', $p), ['method' => 'Tunai di kantor', 'paid_at' => '2026-02-15'])
+            ->assertRedirect(route('pembayaran-admin.index'));
         $p->refresh();
         $this->assertSame('Tunai di kantor', $p->method);
         $this->assertSame('2026-02-15', $p->paid_at->toDateString());
 
-        $this->from(route('keuangan.index'))
-            ->put(route('keuangan.update', $p), ['method' => 'Bitcoin', 'paid_at' => 'bukan-tanggal'])
+        $this->from(route('pembayaran-admin.index'))
+            ->put(route('pembayaran-admin.update', $p), ['method' => 'Bitcoin', 'paid_at' => 'bukan-tanggal'])
             ->assertSessionHasErrors(['method', 'paid_at']);
     }
 
@@ -75,7 +81,7 @@ class KeuanganPembayaranTest extends TestCase
         $s = $this->studentWithPayments();
         $first = $s->payments()->where('installment_no', 1)->first();
 
-        $this->from(route('keuangan.index'))->delete(route('keuangan.destroy', $first))->assertRedirect(route('keuangan.index'));
+        $this->from(route('pembayaran-admin.index'))->delete(route('pembayaran-admin.destroy', $first))->assertRedirect(route('pembayaran-admin.index'));
 
         $this->assertModelMissing($first);
         $left = $s->payments()->orderBy('installment_no')->get();
@@ -83,7 +89,7 @@ class KeuanganPembayaranTest extends TestCase
         $this->assertSame(['lunas', 'menunggu'], $left->pluck('status')->all());
 
         // Cicilan berikutnya tercatat di nomor yang benar tanpa menimpa cicilan lunas.
-        $this->post(route('keuangan.record'), ['student_id' => $s->id, 'method' => 'Transfer bank', 'paid_at' => '2026-04-01']);
+        $this->post(route('pembayaran-admin.store'), ['student_id' => $s->id, 'method' => 'Transfer bank', 'paid_at' => '2026-04-01']);
         $this->assertSame(2, $s->payments()->where('status', 'lunas')->count());
     }
 }

@@ -106,7 +106,7 @@ class AlurTest extends TestCase
         }
         $s = Student::first();
         $before = $s->payments()->count();
-        $this->post(route('keuangan.record'), ['student_id' => $s->id, 'method' => 'Transfer VA', 'paid_at' => now()->toDateString()])->assertRedirect();
+        $this->post(route('pembayaran-admin.store'), ['student_id' => $s->id, 'method' => 'Transfer VA', 'paid_at' => now()->toDateString()])->assertRedirect();
         $this->assertGreaterThanOrEqual($before, $s->payments()->count());
         $this->post(route('keuangan.remind', $s))->assertRedirect();
     }

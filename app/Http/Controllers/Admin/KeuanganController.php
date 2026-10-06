@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Activity;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
-use App\Support\Catalog;
 use App\Support\Fmt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -41,23 +38,8 @@ class KeuanganController extends Controller
             'paid' => $rows->sum(fn ($r) => $r['paid'] * $fee['per']),
             'tunggakan' => $rows->sum(fn ($r) => $r['overdue'] * $fee['per']),
             'pendingRows' => $rows->filter(fn ($r) => $r['pending'])->values(),
-            'history' => Payment::with('student.user')->orderByDesc('paid_at')->orderByDesc('id')->get(),
             'readonly' => $request->user()->role === 'direktur',
         ]);
-    }
-
-    public function record(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'student_id' => ['required', 'exists:students,id'],
-            'method' => ['required', Rule::in(Catalog::PAYMENT_METHODS)],
-            'paid_at' => ['required', 'date'],
-        ]);
-        $s = Student::with('payments', 'user')->findOrFail($data['student_id']);
-        abort_if($this->payments->paidCount($s) >= $this->payments->fee()['installments'], 422, 'Semua cicilan sudah lunas.');
-        $this->payments->record($s, $data['method'], $data['paid_at'], $request->user());
-
-        return back()->with('toast', "Pembayaran {$s->name} dicatat. Kuitansi dikirim.");
     }
 
     public function verify(Request $request, Payment $payment): RedirectResponse
@@ -65,27 +47,6 @@ class KeuanganController extends Controller
         $this->payments->verify($payment->load('student.user'), $request->user());
 
         return back()->with('toast', 'Pembayaran terverifikasi. Kuitansi dikirim ke peserta.');
-    }
-
-    public function update(Request $request, Payment $payment): RedirectResponse
-    {
-        $data = $request->validate([
-            'method' => ['required', Rule::in(Catalog::PAYMENT_METHODS)],
-            'paid_at' => ['required', 'date'],
-        ]);
-        $this->payments->update($payment, $data['method'], $data['paid_at']);
-
-        return back()->with('toast', "Pembayaran cicilan ke-{$payment->installment_no} {$payment->student->name} diperbarui.");
-    }
-
-    public function destroy(Payment $payment): RedirectResponse
-    {
-        $name = $payment->student->name;
-        $no = $payment->installment_no;
-        $this->payments->delete($payment);
-        Activity::log('🗑️', 'ic-bg-grey', "Pembayaran cicilan ke-{$no} {$name} dihapus");
-
-        return back()->with('toast', "Pembayaran cicilan ke-{$no} {$name} dihapus.");
     }
 
     public function proof(Payment $payment): StreamedResponse

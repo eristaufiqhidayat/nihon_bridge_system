@@ -80,7 +80,7 @@ class HalamanTest extends TestCase
             $this->get($url)->assertOk();
         }
         $this->get('/bank-soal')->assertForbidden();
-        $this->post('/keuangan/bayar')->assertForbidden();
+        $this->post('/data-pembayaran')->assertForbidden();
     }
 
     public function test_pesan_terkirim(): void

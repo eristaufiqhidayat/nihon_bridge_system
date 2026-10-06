@@ -41,6 +41,7 @@ class Navigation
             ['analisis.index', '🔍', 'Analisis Ujian', 'analisis.*'],
             ['monitoring.index', '👥', 'Monitoring Peserta', 'monitoring.*'],
             ['perusahaan.index', '🏢', 'Perusahaan & Job Order', 'perusahaan.*'],
+            ['pembayaran-admin.index', '🧾', 'Pembayaran Peserta', 'pembayaran-admin.*'],
             ['keuangan.index', '💳', 'Keuangan', 'keuangan.*'],
             ['laporan.index', '📈', 'Laporan', 'laporan.*'],
             ['pesan.index', '✉️', 'Pesan', 'pesan.*'],
