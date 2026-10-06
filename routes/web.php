@@ -9,11 +9,10 @@ use App\Http\Controllers\Peserta;
 use App\Http\Controllers\Publik\DaftarController;
 use App\Http\Controllers\Publik\VerifikasiController;
 use App\Http\Controllers\Shared;
-use App\Support\Catalog;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check()
-    ? redirect()->route(Catalog::HOME[auth()->user()->role])
+    ? redirect()->route(auth()->user()->homeRoute())
     : redirect()->route('login'));
 
 /* ---------------- Publik ---------------- */
@@ -108,6 +107,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin', [Admin\DashboardController::class, 'index'])->name('admin.dashboard');
         Route::post('/admin/pengguna', [Admin\DashboardController::class, 'storeUser'])->name('admin.users.store');
+        Route::patch('/admin/pengguna/{user}/peran', [Admin\DashboardController::class, 'updateRole'])->name('admin.users.role');
         Route::patch('/admin/pengguna/{user}/status', [Admin\DashboardController::class, 'toggleUser'])->name('admin.users.toggle');
 
         Route::get('/data-peserta', [Admin\PesertaController::class, 'index'])->name('peserta-admin.index');
@@ -116,6 +116,13 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::get('/data-peserta/{student}/edit', [Admin\PesertaController::class, 'edit'])->name('peserta-admin.edit');
         Route::put('/data-peserta/{student}', [Admin\PesertaController::class, 'update'])->name('peserta-admin.update');
         Route::delete('/data-peserta/{student}', [Admin\PesertaController::class, 'destroy'])->name('peserta-admin.destroy');
+
+        Route::get('/data-role', [Admin\RoleController::class, 'index'])->name('role-admin.index');
+        Route::get('/data-role/baru', [Admin\RoleController::class, 'create'])->name('role-admin.create');
+        Route::post('/data-role', [Admin\RoleController::class, 'store'])->name('role-admin.store');
+        Route::get('/data-role/{role}/edit', [Admin\RoleController::class, 'edit'])->name('role-admin.edit');
+        Route::put('/data-role/{role}', [Admin\RoleController::class, 'update'])->name('role-admin.update');
+        Route::delete('/data-role/{role}', [Admin\RoleController::class, 'destroy'])->name('role-admin.destroy');
 
         Route::get('/data-angkatan', [Admin\AngkatanController::class, 'index'])->name('angkatan.index');
         Route::get('/data-angkatan/baru', [Admin\AngkatanController::class, 'create'])->name('angkatan.create');

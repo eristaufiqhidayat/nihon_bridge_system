@@ -3,7 +3,6 @@
 namespace App\View;
 
 use App\Services\MessageService;
-use App\Support\Navigation;
 use Illuminate\View\View;
 
 /**
@@ -25,7 +24,7 @@ class ShellComposer
 
         $view->with([
             'me' => $user,
-            'menu' => Navigation::MENU[$user->role] ?? [],
+            'menu' => $user->menuItems(),
             'unreadMessages' => $this->messages->unreadTotal($user),
             'notifs' => $notifs,
             'notifUnread' => $user->appNotifications()->whereNull('read_at')->count(),

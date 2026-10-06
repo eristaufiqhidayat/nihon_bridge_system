@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Support\Catalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,7 +56,7 @@ class LoginController extends Controller
 
     private function welcome(User $user): RedirectResponse
     {
-        return redirect()->intended(route(Catalog::HOME[$user->role]))->with('toast', "Selamat datang, {$user->name}");
+        return redirect()->intended(route($user->homeRoute()))->with('toast', "Selamat datang, {$user->name}");
     }
 
     public function logout(Request $request): RedirectResponse

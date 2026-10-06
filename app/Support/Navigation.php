@@ -45,6 +45,7 @@ class Navigation
             ['pembayaran-admin.index', '🧾', 'Pembayaran Peserta', 'pembayaran-admin.*'],
             ['keuangan.index', '💳', 'Keuangan', 'keuangan.*'],
             ['laporan.index', '📈', 'Laporan', 'laporan.*'],
+            ['role-admin.index', '🔐', 'Data Role', 'role-admin.*'],
             ['pesan.index', '✉️', 'Pesan', 'pesan.*'],
             ['profil.show', '👤', 'Profil', 'profil.*'],
         ],
@@ -57,4 +58,18 @@ class Navigation
             ['profil.show', '👤', 'Profil', 'profil.*'],
         ],
     ];
+
+    /** Menu yang selalu dimiliki setiap peran tambahan. */
+    public const ALWAYS = [
+        ['pesan.index', '✉️', 'Pesan', 'pesan.*'],
+        ['profil.show', '👤', 'Profil', 'profil.*'],
+    ];
+
+    /** Menu yang bisa dipilih untuk peran tambahan: menu admin selain Pesan dan Profil. */
+    public static function options(): array
+    {
+        $always = array_column(self::ALWAYS, 0);
+
+        return array_values(array_filter(self::MENU['admin'], fn ($m) => ! in_array($m[0], $always, true)));
+    }
 }

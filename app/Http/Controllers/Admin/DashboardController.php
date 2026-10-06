@@ -8,6 +8,7 @@ use App\Models\Applicant;
 use App\Models\Classroom;
 use App\Models\ExamPackage;
 use App\Models\Question;
+use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\PaymentService;
@@ -34,7 +35,7 @@ class DashboardController extends Controller
                 'soal' => Question::count(),
                 'dokumen' => $students->sum(fn ($s) => collect(Catalog::DOCS)->filter(fn ($d) => $s->docStatus($d) === 'proses')->count()),
             ],
-            'users' => User::with('student.classroom', 'waliClasses')->orderByRaw("CASE role WHEN 'peserta' THEN 0 WHEN 'instruktur' THEN 1 WHEN 'admin' THEN 2 ELSE 3 END")->orderBy('id')->get(),
+            'users' => User::with('student.classroom', 'waliClasses', 'roleInfo')->orderByRaw("CASE role WHEN 'peserta' THEN 0 WHEN 'instruktur' THEN 1 WHEN 'admin' THEN 2 ELSE 3 END")->orderBy('id')->get(),
             'activities' => Activity::latest()->limit(5)->get(),
             'todo' => [
                 'baru' => Applicant::where('status', 'baru')->count(),
@@ -42,6 +43,7 @@ class DashboardController extends Controller
                 'draf' => ExamPackage::where('status', 'Draf')->count(),
             ],
             'classes' => Classroom::orderBy('kode')->get(),
+            'roles' => Role::orderByDesc('is_system')->orderBy('id')->get(),
         ]);
     }
 
@@ -50,7 +52,7 @@ class DashboardController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'role' => ['required', Rule::in(array_keys(Catalog::ROLES))],
+            'role' => ['required', Rule::exists('roles', 'key')],
             'classroom_id' => ['nullable', 'exists:classrooms,id'],
         ], [
             'name.required' => 'Isi nama dan email yang valid.',
@@ -76,6 +78,20 @@ class DashboardController extends Controller
         Password::broker()->sendResetLink(['email' => $user->email]);
 
         return back()->with('toast', "{$user->name} ditambahkan. Tautan aktivasi dikirim ke email.");
+    }
+
+    /** Ganti peran pengguna non-peserta. Peserta dikelola lewat Data Peserta karena terikat data siswa. */
+    public function updateRole(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate(['role' => ['required', Rule::exists('roles', 'key')->whereNot('key', 'peserta')]], [
+            'role.exists' => 'Pilih peran yang tersedia. Peran Peserta diatur lewat Data Peserta.',
+        ]);
+        abort_if($user->role === 'peserta', 422, 'Peran peserta diatur lewat Data Peserta.');
+        abort_if($user->id === $request->user()->id, 422, 'Tidak bisa mengubah peran akun sendiri.');
+
+        $user->update(['role' => $data['role']]);
+
+        return back()->with('toast', "Peran {$user->name} diubah menjadi {$user->fresh()->role_label}");
     }
 
     public function toggleUser(Request $request, User $user): RedirectResponse

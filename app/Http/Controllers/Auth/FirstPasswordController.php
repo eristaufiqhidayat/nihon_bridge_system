@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Support\Catalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +15,7 @@ class FirstPasswordController extends Controller
     public function show(Request $request): View|RedirectResponse
     {
         if (! $request->user()->must_change_password) {
-            return redirect()->route(Catalog::HOME[$request->user()->role]);
+            return redirect()->route($request->user()->homeRoute());
         }
 
         return view('auth.first-password', ['user' => $request->user()]);
@@ -39,6 +38,6 @@ class FirstPasswordController extends Controller
         $user->update(['password' => Hash::make($request->input('password')), 'must_change_password' => false]);
         $request->session()->regenerate();
 
-        return redirect()->route(Catalog::HOME[$user->role])->with('toast', 'Password baru disimpan. Selamat datang, ' . $user->name);
+        return redirect()->route($user->homeRoute())->with('toast', 'Password baru disimpan. Selamat datang, ' . $user->name);
     }
 }
