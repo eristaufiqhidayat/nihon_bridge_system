@@ -162,7 +162,8 @@ class DataAngkatanTest extends TestCase
         Carbon::setTestNow('2027-02-20');
         $this->assertSame(2, $pay->overdue($s));
         $this->assertSame(6000000, $pay->overdueAmount($s));
-        $this->get(route('keuangan.index'))->assertOk()->assertSee($b->nama)->assertSee('Menunggak 2 tahap')->assertSee('0/3');
+        $this->get(route('keuangan.index'))->assertOk()->assertSee($b->nama)->assertSee(route('keuangan.batch', $b->id));
+        $this->get(route('keuangan.batch', $b->id))->assertOk()->assertSee($s->name)->assertSee('Menunggak 2 tahap')->assertSee('0/3');
 
         $this->actingAs($s->user);
         $this->get(route('tagihan.index'))->assertOk()
