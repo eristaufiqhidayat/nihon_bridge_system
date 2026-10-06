@@ -35,6 +35,7 @@ class Navigation
             ['pendaftaran.index', '📝', 'Pendaftaran', 'pendaftaran.*'],
             ['angkatan.index', '🗓️', 'Data Angkatan', 'angkatan.*'],
             ['peserta-admin.index', '🎓', 'Data Peserta', 'peserta-admin.*'],
+            ['pengguna-admin.index', '🧑‍💼', 'Data Pengguna', 'pengguna-admin.*'],
             ['kelas-admin.index', '🏫', 'Kelas & Jadwal', 'kelas-admin.*'],
             ['materi-admin.index', '📘', 'Kelola Materi', 'materi-admin.*'],
             ['banksoal.index', '🗂️', 'Bank Soal', 'banksoal.*'],

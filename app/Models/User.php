@@ -86,6 +86,24 @@ class User extends Authenticatable
         return $this->roleInfo?->menuItems() ?? [];
     }
 
+    /**
+     * Data yang masih terhubung dengan akun non-peserta: [label => jumlah].
+     * Kosong berarti akun aman dihapus. Data peserta dicek lewat Student::deleteBlockers().
+     */
+    public function deleteBlockers(): array
+    {
+        $counts = [
+            'kelas sebagai wali' => $this->waliClasses()->count(),
+            'jadwal mengajar' => $this->teachingSchedules()->count(),
+            'sesi kehadiran' => AttendanceSession::where('instructor_id', $this->id)->count(),
+            'soal bank soal' => Question::where('created_by', $this->id)->count(),
+            'pembayaran diverifikasi' => Payment::where('verified_by', $this->id)->count(),
+            'pesan terkirim' => Message::where('user_id', $this->id)->count(),
+        ];
+
+        return array_filter($counts);
+    }
+
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles, true);

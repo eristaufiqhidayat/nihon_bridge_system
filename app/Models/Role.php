@@ -26,8 +26,8 @@ class Role extends Model
         return $this->hasMany(User::class, 'role', 'key');
     }
 
-    /** Menu yang selalu tercentang dan tidak bisa dilepas: Admin harus tetap bisa membuka Dashboard dan Data Role. */
-    public const LOCKED = ['admin' => ['admin.dashboard', 'role-admin.index']];
+    /** Menu yang selalu tercentang dan tidak bisa dilepas: Admin harus tetap bisa membuka Dashboard, Data Pengguna, dan Data Role. */
+    public const LOCKED = ['admin' => ['admin.dashboard', 'pengguna-admin.index', 'role-admin.index']];
 
     /** Menu bawaan peran (dari kode), tanpa Pesan dan Profil. */
     public function defaultItems(): array

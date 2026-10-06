@@ -117,6 +117,14 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::put('/data-peserta/{student}', [Admin\PesertaController::class, 'update'])->name('peserta-admin.update');
         Route::delete('/data-peserta/{student}', [Admin\PesertaController::class, 'destroy'])->name('peserta-admin.destroy');
 
+        Route::get('/data-pengguna', [Admin\PenggunaController::class, 'index'])->name('pengguna-admin.index');
+        Route::get('/data-pengguna/baru', [Admin\PenggunaController::class, 'create'])->name('pengguna-admin.create');
+        Route::post('/data-pengguna', [Admin\PenggunaController::class, 'store'])->name('pengguna-admin.store');
+        Route::get('/data-pengguna/{user}/edit', [Admin\PenggunaController::class, 'edit'])->name('pengguna-admin.edit');
+        Route::put('/data-pengguna/{user}', [Admin\PenggunaController::class, 'update'])->name('pengguna-admin.update');
+        Route::post('/data-pengguna/{user}/reset-password', [Admin\PenggunaController::class, 'resetPassword'])->name('pengguna-admin.reset');
+        Route::delete('/data-pengguna/{user}', [Admin\PenggunaController::class, 'destroy'])->name('pengguna-admin.destroy');
+
         Route::get('/data-role', [Admin\RoleController::class, 'index'])->name('role-admin.index');
         Route::get('/data-role/baru', [Admin\RoleController::class, 'create'])->name('role-admin.create');
         Route::post('/data-role', [Admin\RoleController::class, 'store'])->name('role-admin.store');
