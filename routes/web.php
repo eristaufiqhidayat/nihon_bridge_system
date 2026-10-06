@@ -161,6 +161,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::middleware('role:admin,direktur')->group(function () {
         Route::get('/perusahaan', [Admin\PerusahaanController::class, 'index'])->name('perusahaan.index');
         Route::get('/keuangan', [Admin\KeuanganController::class, 'index'])->name('keuangan.index');
+        Route::get('/keuangan/angkatan/{key}', [Admin\KeuanganController::class, 'batch'])->name('keuangan.batch');
         Route::get('/laporan', [Admin\LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/ekspor', [Admin\LaporanController::class, 'export'])->name('laporan.export');
     });
