@@ -22,21 +22,21 @@ class KeuanganController extends Controller
 
     public function index(Request $request): View
     {
-        $fee = $this->payments->fee();
-        $students = Student::with('user', 'payments', 'classroom')->get()->sortBy('nis')->values();
+        $students = Student::with(['user', 'classroom', ...PaymentService::RELATIONS])->get()->sortBy('nis')->values();
         $rows = $students->map(fn ($s) => [
             'student' => $s,
             'paid' => $this->payments->paidCount($s),
+            'stages' => $this->payments->installments($s),
+            'remaining' => $this->payments->remaining($s),
             'overdue' => $this->payments->overdue($s),
             'pending' => $this->payments->pending($s),
         ]);
 
         return view('admin.keuangan', [
-            'fee' => $fee,
             'rows' => $rows,
-            'total' => $students->count() * $fee['total'],
-            'paid' => $rows->sum(fn ($r) => $r['paid'] * $fee['per']),
-            'tunggakan' => $rows->sum(fn ($r) => $r['overdue'] * $fee['per']),
+            'total' => $students->sum(fn ($s) => $this->payments->total($s)),
+            'paid' => $students->sum(fn ($s) => $this->payments->paidAmount($s)),
+            'tunggakan' => $students->sum(fn ($s) => $this->payments->overdueAmount($s)),
             'pendingRows' => $rows->filter(fn ($r) => $r['pending'])->values(),
             'readonly' => $request->user()->role === 'direktur',
         ]);
@@ -58,9 +58,9 @@ class KeuanganController extends Controller
 
     public function remind(Student $student, NotificationService $notifier): RedirectResponse
     {
-        $student->load('payments', 'user');
+        $student->load(['user', ...PaymentService::RELATIONS]);
         $od = $this->payments->overdue($student);
-        $notifier->notify($student->user, '💳', "Pengingat: $od cicilan lewat jatuh tempo (" . Fmt::rupiah($od * $this->payments->fee()['per']) . '). Mohon segera dibayar.', route('tagihan.index'));
+        $notifier->notify($student->user, '💳', "Pengingat: $od tahap pembayaran lewat jatuh tempo (" . Fmt::rupiah($this->payments->overdueAmount($student)) . '). Mohon segera dibayar.', route('tagihan.index'));
 
         return back()->with('toast', "Pengingat tagihan dikirim ke {$student->name}");
     }

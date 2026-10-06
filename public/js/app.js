@@ -37,6 +37,14 @@
       if (el.type === 'checkbox') el.checked = !!v; else el.value = v ?? '';
     });
     m.querySelectorAll('.form-error[data-clear]').forEach(e => { e.hidden = true; });
+    m.querySelectorAll('[data-amount-of]').forEach(syncAmount);
+  }
+
+  /* Field jumlah yang mengikuti opsi terpilih (data-amount pada <option>). */
+  function syncAmount(out) {
+    const sel = document.getElementById(out.dataset.amountOf);
+    const opt = sel && sel.selectedOptions[0];
+    if (opt && opt.dataset.amount !== undefined) out.value = opt.dataset.amount;
   }
 
   document.addEventListener('click', e => {
@@ -80,7 +88,33 @@
   document.addEventListener('change', e => {
     const el = e.target;
     if (el.matches('[data-autosubmit]')) { el.form.requestSubmit ? el.form.requestSubmit() : el.form.submit(); }
+    if (el.id) $$(`[data-amount-of="${el.id}"]`).forEach(syncAmount);
   });
+
+  /* ---------- baris berulang (mis. tahapan pembayaran angkatan) ---------- */
+  document.addEventListener('click', e => {
+    const add = e.target.closest('[data-repeat-add]');
+    if (add) {
+      const list = document.getElementById(add.dataset.repeatAdd);
+      const tpl = document.getElementById(list.dataset.template);
+      list.appendChild(tpl.content.cloneNode(true));
+      renumber(list);
+      return;
+    }
+    const del = e.target.closest('[data-repeat-remove]');
+    if (del) {
+      const list = del.closest('[data-template]');
+      del.closest('[data-repeat-row]').remove();
+      renumber(list);
+    }
+  });
+  function renumber(list) {
+    list.querySelectorAll('[data-repeat-row]').forEach((row, i) => {
+      row.querySelectorAll('[data-repeat-no]').forEach(x => { x.textContent = i + 1; });
+    });
+    const count = document.querySelector(`[data-repeat-count="${list.id}"]`);
+    if (count) count.textContent = list.querySelectorAll('[data-repeat-row]').length;
+  }
 
   /* ---------- notifikasi, menu, keyboard ---------- */
   const bell = $('#bellBtn'), panel = $('#notifPanel');

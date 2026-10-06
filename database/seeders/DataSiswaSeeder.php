@@ -49,6 +49,11 @@ class DataSiswaSeeder extends Seeder
                     'program_id' => $program->id, 'nama' => "Angkatan $no",
                     'mulai' => $mulai, 'selesai' => \Illuminate\Support\Carbon::parse($mulai)->addMonths(6)->subDay(),
                 ]);
+                if ($batches[$no]->installments()->doesntExist()) {
+                    foreach (range(1, 6) as $t) {
+                        $batches[$no]->installments()->create(['tahap' => $t, 'jatuh_tempo' => \Illuminate\Support\Carbon::parse($mulai)->startOfMonth()->addMonths($t - 1)->day(15)]);
+                    }
+                }
             }
             $password = Hash::make(self::INITIAL_PASSWORD);
 

@@ -49,6 +49,10 @@ class PeopleSeeder extends Seeder
                 'program_id' => $program->id, 'kode' => $kode, 'nama' => "Angkatan $no",
                 'mulai' => $mulai, 'selesai' => \Illuminate\Support\Carbon::parse($mulai)->addMonths(6)->subDay(),
             ]);
+            // 6 tahap pembayaran, jatuh tempo tiap tanggal 15 mulai bulan pertama angkatan
+            foreach (range(1, 6) as $t) {
+                $batch[$no]->installments()->create(['tahap' => $t, 'jatuh_tempo' => \Illuminate\Support\Carbon::parse($mulai)->startOfMonth()->addMonths($t - 1)->day(15)]);
+            }
         }
 
         // Kelas & jadwal (kode mapel-instruktur per slot, Senin–Jumat)

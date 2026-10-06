@@ -25,23 +25,20 @@ class PembayaranController extends Controller
     public function index(Request $request): View
     {
         $q = trim((string) $request->query('q', ''));
-        $list = Student::with(['user', 'classroom', 'payments' => fn ($p) => $p->orderBy('installment_no')])
+        $list = Student::with(['user', 'classroom', 'batch.program', 'batch.installments', 'payments' => fn ($p) => $p->orderBy('installment_no')])
             ->when($q !== '', fn ($s) => $s->where(fn ($w) => $w
                 ->where('nis', 'like', "%{$q}%")
                 ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"))))
             ->orderBy('nis')
             ->paginate(15)->withQueryString();
 
-        $fee = $this->payments->fee();
-
         return view('admin.pembayaran', [
             'list' => $list,
             'q' => $q,
-            'fee' => $fee,
-            'paidCount' => fn (Student $s) => $this->payments->paidCount($s),
-            // Pilihan peserta di form entri: hanya yang cicilannya belum lunas semua.
-            'options' => Student::with('user', 'payments')->orderBy('nis')->get()
-                ->filter(fn ($s) => $this->payments->paidCount($s) < $fee['installments'])->values(),
+            'pay' => $this->payments,
+            // Pilihan peserta di form entri: hanya yang tahapannya belum lunas semua.
+            'options' => Student::with(['user', ...PaymentService::RELATIONS])->orderBy('nis')->get()
+                ->reject(fn ($s) => $this->payments->isPaidOff($s))->values(),
         ]);
     }
 
@@ -52,8 +49,8 @@ class PembayaranController extends Controller
             'method' => ['required', Rule::in(Catalog::PAYMENT_METHODS)],
             'paid_at' => ['required', 'date'],
         ]);
-        $s = Student::with('payments', 'user')->findOrFail($data['student_id']);
-        abort_if($this->payments->paidCount($s) >= $this->payments->fee()['installments'], 422, 'Semua cicilan sudah lunas.');
+        $s = Student::with(['user', ...PaymentService::RELATIONS])->findOrFail($data['student_id']);
+        abort_if($this->payments->isPaidOff($s), 422, 'Semua tahap pembayaran sudah lunas.');
         $this->payments->record($s, $data['method'], $data['paid_at'], $request->user());
 
         return back()->with('toast', "Pembayaran {$s->name} dicatat. Kuitansi dikirim.");
