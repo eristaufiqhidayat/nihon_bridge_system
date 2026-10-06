@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Role;
-use App\Support\Navigation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,7 +12,7 @@ use Illuminate\View\View;
 
 /**
  * Data Role (admin): peran pengguna beserta menu yang boleh diakses.
- * Empat peran bawaan tidak bisa dihapus dan menunya tetap; peran yang masih dipakai pengguna tidak bisa dihapus.
+ * Empat peran bawaan tidak bisa dihapus (menunya tetap bisa diatur); peran yang masih dipakai pengguna tidak bisa dihapus.
  */
 class RoleController extends Controller
 {
@@ -46,7 +45,8 @@ class RoleController extends Controller
     public function update(Request $request, Role $role): RedirectResponse
     {
         $data = $this->validated($request, $role);
-        $role->update($role->is_system ? collect($data)->except('menus')->all() : $data);
+        $data['menus'] = array_values(array_unique([...$role->lockedKeys(), ...$data['menus']]));
+        $role->update($data);
 
         return redirect()->route('role-admin.edit', $role)->with('toast', "Peran {$role->name} disimpan");
     }
@@ -73,19 +73,20 @@ class RoleController extends Controller
     {
         return view('admin.role-form', [
             'role' => $role,
-            'options' => Navigation::options(),
-            'picked' => old('menus', $role->menus ?? []),
+            'options' => $role->options(),
+            'picked' => old('menus', $role->exists ? $role->pickedKeys() : []),
+            'locked' => $role->lockedKeys(),
         ]);
     }
 
     private function validated(Request $request, ?Role $role = null): array
     {
-        $menuKeys = array_column(Navigation::options(), 0);
+        $menuKeys = array_column(($role ?? new Role())->options(), 0);
 
         return $request->validate([
             'name' => ['required', 'string', 'max:60', Rule::unique('roles')->ignore($role?->id)],
             'description' => ['nullable', 'string', 'max:255'],
-            'menus' => [$role?->is_system ? 'nullable' : 'required', 'array'],
+            'menus' => [$role?->lockedKeys() ? 'nullable' : 'required', 'array'],
             'menus.*' => [Rule::in($menuKeys)],
         ], [
             'name.required' => 'Nama peran wajib diisi, mis. Staf Keuangan.',

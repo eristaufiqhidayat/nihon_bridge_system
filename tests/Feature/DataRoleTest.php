@@ -65,18 +65,45 @@ class DataRoleTest extends TestCase
         $this->post('/data-role', ['name' => 'Iseng', 'menus' => ['dashboard']])->assertSessionHasErrors('menus.0');
     }
 
-    public function test_role_bawaan_tidak_bisa_dihapus_dan_menunya_tetap(): void
+    public function test_role_bawaan_tidak_bisa_dihapus_tapi_menunya_bisa_diatur(): void
     {
         $this->admin();
         $admin = Role::where('key', 'admin')->firstOrFail();
         $this->delete("/data-role/{$admin->id}")->assertSessionHasErrors('hapus');
         $this->assertModelExists($admin);
 
-        $this->put("/data-role/{$admin->id}", ['name' => 'Administrator', 'menus' => ['keuangan.index']]);
+        // Form edit role bawaan menampilkan centang menu.
+        $instruktur = Role::where('key', 'instruktur')->firstOrFail();
+        $this->get("/data-role/{$instruktur->id}/edit")->assertOk()
+            ->assertSee('name="menus[]" value="kehadiran.index"', false)
+            ->assertSee('name="menus[]" value="keuangan.index"', false);
+
+        // Instruktur: lepas Bank Soal, tambah Keuangan.
+        $keep = array_values(array_diff(array_column($instruktur->defaultItems(), 0), ['banksoal.index']));
+        $this->put("/data-role/{$instruktur->id}", ['name' => 'Instruktur', 'menus' => [...$keep, 'keuangan.index']])->assertSessionHasNoErrors();
+
+        $this->actingAs(User::where('role', 'instruktur')->firstOrFail());
+        $this->get('/keuangan')->assertOk()->assertDontSee(route('banksoal.index'));
+        $this->get('/bank-soal')->assertForbidden();
+        $this->get('/kehadiran')->assertOk();
+    }
+
+    public function test_admin_tidak_bisa_melepas_dashboard_dan_data_role(): void
+    {
+        $this->admin();
+        $admin = Role::where('key', 'admin')->firstOrFail();
+        $this->get("/data-role/{$admin->id}/edit")->assertOk()->assertSee('(wajib)');
+
+        $this->put("/data-role/{$admin->id}", ['name' => 'Administrator', 'menus' => ['keuangan.index']])->assertSessionHasNoErrors();
         $admin->refresh();
         $this->assertSame('Administrator', $admin->name);
-        $this->assertNull($admin->menus);
-        $this->get('/admin')->assertOk()->assertSee('Data Angkatan');
+        $this->assertEqualsCanonicalizing(['admin.dashboard', 'role-admin.index', 'keuangan.index'], $admin->menus);
+
+        $this->actingAs(User::where('role', 'admin')->firstOrFail()); // muat ulang peran
+        $this->get('/admin')->assertOk()->assertDontSee(route('angkatan.index'));
+        $this->get('/data-role')->assertOk();
+        $this->get('/keuangan')->assertOk();
+        $this->get('/data-angkatan')->assertForbidden();
     }
 
     public function test_role_dipakai_pengguna_tidak_bisa_dihapus(): void
