@@ -11,8 +11,8 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\YearlyStat;
+use App\Services\PaymentService;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 
 /**
  * Pendaftar, perusahaan mitra (fiktif), job order, pembayaran, dan statistik tahunan.
@@ -61,15 +61,16 @@ class OperationsSeeder extends Seeder
         }
 
         // Pembayaran cicilan (jumlah cicilan lunas per peserta)
-        $fee = config('nihonbridge.fee');
+        // Nominal & jatuh tempo mengikuti tahapan pembayaran angkatan peserta.
+        $payments = app(PaymentService::class);
         $paid = ['ahmad.fauzi' => 4, 'siti.r' => 5, 'dewi.l' => 6, 'rizky.p' => 3, 'budi.s' => 2, 'nur.a' => 2];
-        foreach (Student::with('user')->get() as $s) {
+        foreach (Student::with(['user', 'classroom', ...PaymentService::RELATIONS])->get() as $s) {
             $key = explode('@', $s->user->email)[0];
             $n = $paid[$key] ?? ($s->classroom?->kode === 'N4-A' ? 4 : 1);
-            for ($i = 1; $i <= $n; $i++) {
+            foreach ($payments->schedule($s)->take($n) as $t) {
                 Payment::create([
-                    'student_id' => $s->id, 'installment_no' => $i, 'amount' => $fee['per'], 'method' => $i % 2 ? 'Transfer VA' : 'Transfer bank',
-                    'status' => 'lunas', 'paid_at' => Carbon::parse($fee['due'][$i - 1])->subDays(3 + $i),
+                    'student_id' => $s->id, 'installment_no' => $t['no'], 'amount' => $t['amount'], 'method' => $t['no'] % 2 ? 'Transfer VA' : 'Transfer bank',
+                    'status' => 'lunas', 'paid_at' => $t['due']->copy()->subDays(3 + $t['no']),
                 ]);
             }
         }

@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,9 +17,60 @@ class PaymentService
     {
     }
 
+    /** Pengaturan pembayaran umum (VA, bank) dan jadwal cadangan bila angkatan belum punya tahapan. */
     public function fee(): array
     {
         return config('nihonbridge.fee');
+    }
+
+    /** Relasi yang dibutuhkan perhitungan tagihan; pakai di with() agar tidak N+1. */
+    public const RELATIONS = ['payments', 'batch.program', 'batch.installments'];
+
+    /** Total biaya peserta: total biaya peserta sendiri, lalu biaya angkatan/program, lalu biaya bawaan. */
+    public function total(Student $s): int
+    {
+        return $s->total_fee ?? $s->batch?->totalBiaya() ?? (int) $this->fee()['total'];
+    }
+
+    /**
+     * Jadwal tahapan pembayaran peserta, mengacu ke master angkatan. Bila angkatan
+     * belum punya tahapan, dipakai jadwal bawaan di config/nihonbridge.php.
+     * Nominal tiap tahap = total ÷ jumlah tahap; sisa pembulatan masuk ke tahap terakhir.
+     *
+     * @return Collection<int, array{no: int, due: Carbon, amount: int}>
+     */
+    public function schedule(Student $s): Collection
+    {
+        $stages = $s->batch?->installments;
+        $dues = $stages && $stages->isNotEmpty()
+            ? $stages->pluck('jatuh_tempo')->values()
+            : collect($this->fee()['due'])->map(fn ($d) => Carbon::parse($d));
+        $n = $dues->count();
+        $total = $this->total($s);
+        $per = intdiv($total, $n);
+
+        return $dues->map(fn (Carbon $due, int $i) => [
+            'no' => $i + 1,
+            'due' => $due,
+            'amount' => $i === $n - 1 ? $total - $per * ($n - 1) : $per,
+        ]);
+    }
+
+    public function installments(Student $s): int
+    {
+        return $this->schedule($s)->count();
+    }
+
+    /** Nominal tagihan tahap ke-$no. */
+    public function amountFor(Student $s, int $no): int
+    {
+        return $this->schedule($s)->firstWhere('no', $no)['amount'] ?? 0;
+    }
+
+    /** Tahap yang ditagih berikutnya, atau null bila semua lunas. */
+    public function next(Student $s): ?array
+    {
+        return $this->schedule($s)->firstWhere('no', $this->paidCount($s) + 1);
     }
 
     public function paidCount(Student $s): int
@@ -26,22 +78,48 @@ class PaymentService
         return $s->payments->where('status', 'lunas')->count();
     }
 
+    public function isPaidOff(Student $s): bool
+    {
+        return $this->paidCount($s) >= $this->installments($s);
+    }
+
+    /** Rupiah yang sudah dibayar (lunas). */
+    public function paidAmount(Student $s): int
+    {
+        return (int) $s->payments->where('status', 'lunas')->sum('amount');
+    }
+
+    /** Sisa tagihan: nominal tahap yang belum lunas. */
+    public function remaining(Student $s): int
+    {
+        return (int) $this->schedule($s)->where('no', '>', $this->paidCount($s))->sum('amount');
+    }
+
     public function pending(Student $s): ?Payment
     {
         return $s->payments->firstWhere('status', 'menunggu');
     }
 
-    /** Jumlah cicilan yang sudah jatuh tempo per hari ini. */
-    public function dueByToday(?Carbon $today = null): int
+    /** Jumlah tahap peserta yang sudah jatuh tempo per hari ini. */
+    public function dueByToday(Student $s, ?Carbon $today = null): int
     {
         $today ??= Carbon::today();
 
-        return collect($this->fee()['due'])->filter(fn ($d) => Carbon::parse($d)->lessThanOrEqualTo($today))->count();
+        return $this->schedule($s)->filter(fn ($t) => $t['due']->lessThanOrEqualTo($today))->count();
     }
 
     public function overdue(Student $s): int
     {
-        return max(0, $this->dueByToday() - $this->paidCount($s));
+        return max(0, $this->dueByToday($s) - $this->paidCount($s));
+    }
+
+    /** Rupiah tahap yang lewat jatuh tempo tapi belum lunas. */
+    public function overdueAmount(Student $s, ?Carbon $today = null): int
+    {
+        $today ??= Carbon::today();
+        $paid = $this->paidCount($s);
+
+        return (int) $this->schedule($s)->filter(fn ($t) => $t['no'] > $paid && $t['due']->lessThanOrEqualTo($today))->sum('amount');
     }
 
     public function vaNumber(Student $s): string
@@ -57,7 +135,7 @@ class PaymentService
         $no = $this->paidCount($s) + 1;
         $p = Payment::updateOrCreate(
             ['student_id' => $s->id, 'installment_no' => $no],
-            ['amount' => $this->fee()['per'], 'method' => $method, 'status' => 'lunas', 'paid_at' => $date, 'verified_by' => $by->id]
+            ['amount' => $this->amountFor($s, $no), 'method' => $method, 'status' => 'lunas', 'paid_at' => $date, 'verified_by' => $by->id]
         );
         $this->notifier->notify($s->user, '🧾', "Pembayaran cicilan ke-$no diterima. Kuitansi dikirim ke email Anda.", route('tagihan.index'));
 
@@ -70,7 +148,7 @@ class PaymentService
         $no = $this->paidCount($s) + 1;
         $p = Payment::updateOrCreate(
             ['student_id' => $s->id, 'installment_no' => $no],
-            ['amount' => $this->fee()['per'], 'method' => 'Transfer VA', 'status' => 'menunggu', 'paid_at' => now()->toDateString(),
+            ['amount' => $this->amountFor($s, $no), 'method' => 'Transfer VA', 'status' => 'menunggu', 'paid_at' => now()->toDateString(),
                 'proof_path' => $file->store('bukti-transfer')]
         );
         $this->notifier->notifyRole('admin', '📎', "Bukti transfer cicilan ke-$no dari {$s->name} menunggu verifikasi", route('keuangan.index'));

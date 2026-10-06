@@ -16,11 +16,14 @@ class TagihanController extends Controller
 
     public function index(Request $request): View
     {
-        $student = $request->user()->student()->with('payments')->firstOrFail();
+        $student = $request->user()->student()->with(PaymentService::RELATIONS)->firstOrFail();
 
         return view('peserta.tagihan', [
             'student' => $student,
             'fee' => $this->payments->fee(),
+            'total' => $this->payments->total($student),
+            'schedule' => $this->payments->schedule($student),
+            'next' => $this->payments->next($student),
             'paid' => $this->payments->paidCount($student),
             'pending' => $this->payments->pending($student),
             'va' => $this->payments->vaNumber($student),
@@ -33,8 +36,8 @@ class TagihanController extends Controller
             'bukti.max' => 'Ukuran bukti transfer maksimal 2 MB.',
             'bukti.mimes' => 'Unggah foto (JPG/PNG) atau PDF.',
         ]);
-        $student = $request->user()->student()->with('payments')->firstOrFail();
-        abort_if($this->payments->paidCount($student) >= $this->payments->fee()['installments'], 422);
+        $student = $request->user()->student()->with(PaymentService::RELATIONS)->firstOrFail();
+        abort_if($this->payments->isPaidOff($student), 422);
         $this->payments->uploadProof($student, $request->file('bukti'));
 
         return back()->with('toast', 'Bukti transfer terkirim. Menunggu verifikasi admin.');

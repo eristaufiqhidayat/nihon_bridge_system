@@ -24,7 +24,7 @@ class DashboardController extends Controller
 {
     public function index(PaymentService $payments): View
     {
-        $students = Student::with('payments', 'documents')->get();
+        $students = Student::with(['documents', ...PaymentService::RELATIONS])->get();
 
         return view('admin.dashboard', [
             'stats' => [

@@ -117,6 +117,13 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::put('/data-peserta/{student}', [Admin\PesertaController::class, 'update'])->name('peserta-admin.update');
         Route::delete('/data-peserta/{student}', [Admin\PesertaController::class, 'destroy'])->name('peserta-admin.destroy');
 
+        Route::get('/data-angkatan', [Admin\AngkatanController::class, 'index'])->name('angkatan.index');
+        Route::get('/data-angkatan/baru', [Admin\AngkatanController::class, 'create'])->name('angkatan.create');
+        Route::post('/data-angkatan', [Admin\AngkatanController::class, 'store'])->name('angkatan.store');
+        Route::get('/data-angkatan/{batch}/edit', [Admin\AngkatanController::class, 'edit'])->name('angkatan.edit');
+        Route::put('/data-angkatan/{batch}', [Admin\AngkatanController::class, 'update'])->name('angkatan.update');
+        Route::delete('/data-angkatan/{batch}', [Admin\AngkatanController::class, 'destroy'])->name('angkatan.destroy');
+
         Route::get('/pendaftaran', [Admin\PendaftaranController::class, 'index'])->name('pendaftaran.index');
         Route::get('/pendaftaran/{applicant}/berkas/{key}', [Admin\PendaftaranController::class, 'file'])->name('pendaftaran.file');
         Route::post('/pendaftaran/{applicant}/lolos-berkas', [Admin\PendaftaranController::class, 'passDocuments'])->name('pendaftaran.pass');
