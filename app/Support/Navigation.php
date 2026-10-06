@@ -33,6 +33,7 @@ class Navigation
         'admin' => [
             ['admin.dashboard', '🏠', 'Dashboard', 'admin.*'],
             ['pendaftaran.index', '📝', 'Pendaftaran', 'pendaftaran.*'],
+            ['peserta-admin.index', '🎓', 'Data Peserta', 'peserta-admin.*'],
             ['kelas-admin.index', '🏫', 'Kelas & Jadwal', 'kelas-admin.*'],
             ['materi-admin.index', '📘', 'Kelola Materi', 'materi-admin.*'],
             ['banksoal.index', '🗂️', 'Bank Soal', 'banksoal.*'],

@@ -110,6 +110,13 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::post('/admin/pengguna', [Admin\DashboardController::class, 'storeUser'])->name('admin.users.store');
         Route::patch('/admin/pengguna/{user}/status', [Admin\DashboardController::class, 'toggleUser'])->name('admin.users.toggle');
 
+        Route::get('/data-peserta', [Admin\PesertaController::class, 'index'])->name('peserta-admin.index');
+        Route::get('/data-peserta/baru', [Admin\PesertaController::class, 'create'])->name('peserta-admin.create');
+        Route::post('/data-peserta', [Admin\PesertaController::class, 'store'])->name('peserta-admin.store');
+        Route::get('/data-peserta/{student}/edit', [Admin\PesertaController::class, 'edit'])->name('peserta-admin.edit');
+        Route::put('/data-peserta/{student}', [Admin\PesertaController::class, 'update'])->name('peserta-admin.update');
+        Route::delete('/data-peserta/{student}', [Admin\PesertaController::class, 'destroy'])->name('peserta-admin.destroy');
+
         Route::get('/pendaftaran', [Admin\PendaftaranController::class, 'index'])->name('pendaftaran.index');
         Route::get('/pendaftaran/{applicant}/berkas/{key}', [Admin\PendaftaranController::class, 'file'])->name('pendaftaran.file');
         Route::post('/pendaftaran/{applicant}/lolos-berkas', [Admin\PendaftaranController::class, 'passDocuments'])->name('pendaftaran.pass');
