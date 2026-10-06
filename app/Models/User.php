@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Catalog;
 use App\Support\Fmt;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -67,9 +68,32 @@ class User extends Authenticatable
         return $this->hasMany(Schedule::class, 'instructor_id');
     }
 
+    /** Data peran (tabel roles) yang dipakai pengguna ini. */
+    public function roleInfo(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role', 'key');
+    }
+
+    /** Route halaman awal setelah login. */
+    public function homeRoute(): string
+    {
+        return Catalog::HOME[$this->role] ?? $this->roleInfo?->homeRoute() ?? 'profil.show';
+    }
+
+    /** Menu sidebar sesuai peran. */
+    public function menuItems(): array
+    {
+        return $this->roleInfo?->menuItems() ?? [];
+    }
+
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles, true);
+    }
+
+    public function getRoleBadgeAttribute(): string
+    {
+        return Catalog::ROLE_BADGE[$this->role] ?? 'b-grey';
     }
 
     public function getInitialsAttribute(): string
@@ -79,7 +103,7 @@ class User extends Authenticatable
 
     public function getRoleLabelAttribute(): string
     {
-        return Catalog::ROLES[$this->role] ?? $this->role;
+        return $this->roleInfo?->name ?? Catalog::ROLES[$this->role] ?? $this->role;
     }
 
     /** "Sato Sensei" untuk instruktur. */
@@ -95,7 +119,8 @@ class User extends Authenticatable
             'peserta' => 'Peserta · ' . ($this->student?->classroom?->kode ?? '–'),
             'instruktur' => 'Instruktur · ' . ($this->waliClasses()->value('kode') ?? '–'),
             'admin' => 'Administrator',
-            default => 'Direktur',
+            'direktur' => 'Direktur',
+            default => $this->role_label,
         };
     }
 

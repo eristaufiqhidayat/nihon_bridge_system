@@ -22,7 +22,9 @@
       <div class="tbl-wrap" style="max-height:560px;overflow:auto"><table><thead><tr><th>Nama</th><th>Peran</th><th>Kelas</th><th>Status</th></tr></thead><tbody>
         @foreach ($users as $u)
           <tr><td><b>{{ $u->name }}</b><br><span class="small muted">{{ $u->email }}</span></td>
-            <td><span class="badge {{ Catalog::ROLE_BADGE[$u->role] }}">{{ $u->role_label }}</span></td>
+            <td>@if ($u->role === 'peserta' || $u->id === auth()->id())<span class="badge {{ $u->role_badge }}">{{ $u->role_label }}</span>
+              @else<form method="POST" action="{{ route('admin.users.role', $u) }}" class="inline">@csrf @method('PATCH')
+                <select name="role" aria-label="Peran {{ $u->name }}" data-autosubmit>@foreach ($roles->where('key', '!=', 'peserta') as $r)<option value="{{ $r->key }}" @selected($u->role === $r->key)>{{ $r->name }}</option>@endforeach</select></form>@endif</td>
             <td>{{ $u->student?->classroom?->kode ?? $u->waliClasses->first()?->kode ?? '–' }}</td>
             <td>
               <form method="POST" action="{{ route('admin.users.toggle', $u) }}" class="inline">@csrf @method('PATCH')
@@ -58,7 +60,7 @@
     <x-form-errors modal="userModal" />
     <div class="field"><label for="uNama">Nama lengkap</label><input id="uNama" name="name" value="{{ old('name') }}" placeholder="mis. Intan Kusuma"></div>
     <div class="field"><label for="uEmail">Email</label><input id="uEmail" name="email" type="email" value="{{ old('email') }}" placeholder="nama@nihonbridge.id"></div>
-    <div class="opt-grid"><div class="field"><label for="uRole">Peran</label><select id="uRole" name="role">@foreach (Catalog::ROLES as $k => $l)<option value="{{ $k }}" @selected(old('role') === $k)>{{ $l }}</option>@endforeach</select></div>
+    <div class="opt-grid"><div class="field"><label for="uRole">Peran</label><select id="uRole" name="role">@foreach ($roles as $r)<option value="{{ $r->key }}" @selected(old('role') === $r->key)>{{ $r->name }}</option>@endforeach</select></div>
       <div class="field"><label for="uKelas">Kelas (untuk peserta)</label><select id="uKelas" name="classroom_id"><option value="">–</option>@foreach ($classes as $c)<option value="{{ $c->id }}" @selected((string) old('classroom_id', $classes->firstWhere('kode', 'N4-A')?->id) === (string) $c->id)>{{ $c->kode }}</option>@endforeach</select></div></div>
     <p class="rule-note">Tautan aktivasi akun (buat password) dikirim ke email pengguna.</p>
     <div class="modal-actions"><button type="button" class="cancel" data-modal-close>Batal</button><button class="ok" type="submit">Simpan</button></div>
