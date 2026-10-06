@@ -7,6 +7,8 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentService
 {
@@ -80,5 +82,32 @@ class PaymentService
     {
         $p->update(['status' => 'lunas', 'verified_by' => $by->id]);
         $this->notifier->notify($p->student->user, '✅', "Pembayaran cicilan ke-{$p->installment_no} terverifikasi. Kuitansi dikirim.", route('tagihan.index'));
+    }
+
+    /** Admin mengoreksi metode dan tanggal bayar sebuah cicilan. */
+    public function update(Payment $p, string $method, string $date): void
+    {
+        $p->update(['method' => $method, 'paid_at' => $date]);
+    }
+
+    /**
+     * Admin menghapus catatan pembayaran. Cicilan sesudahnya dinomori ulang agar
+     * tetap berurutan 1..n, karena cicilan berikutnya dicatat sebagai nomor paidCount + 1.
+     */
+    public function delete(Payment $p): void
+    {
+        DB::transaction(function () use ($p) {
+            $studentId = $p->student_id;
+            $p->delete();
+            Payment::where('student_id', $studentId)->orderBy('installment_no')->get()
+                ->values()->each(function (Payment $x, int $i) {
+                    if ($x->installment_no !== $i + 1) {
+                        $x->update(['installment_no' => $i + 1]);
+                    }
+                });
+        });
+        if ($p->proof_path) {
+            Storage::delete($p->proof_path);
+        }
     }
 }

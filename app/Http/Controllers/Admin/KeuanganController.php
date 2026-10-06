@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Services\NotificationService;
@@ -40,6 +41,7 @@ class KeuanganController extends Controller
             'paid' => $rows->sum(fn ($r) => $r['paid'] * $fee['per']),
             'tunggakan' => $rows->sum(fn ($r) => $r['overdue'] * $fee['per']),
             'pendingRows' => $rows->filter(fn ($r) => $r['pending'])->values(),
+            'history' => Payment::with('student.user')->orderByDesc('paid_at')->orderByDesc('id')->get(),
             'readonly' => $request->user()->role === 'direktur',
         ]);
     }
@@ -63,6 +65,27 @@ class KeuanganController extends Controller
         $this->payments->verify($payment->load('student.user'), $request->user());
 
         return back()->with('toast', 'Pembayaran terverifikasi. Kuitansi dikirim ke peserta.');
+    }
+
+    public function update(Request $request, Payment $payment): RedirectResponse
+    {
+        $data = $request->validate([
+            'method' => ['required', Rule::in(Catalog::PAYMENT_METHODS)],
+            'paid_at' => ['required', 'date'],
+        ]);
+        $this->payments->update($payment, $data['method'], $data['paid_at']);
+
+        return back()->with('toast', "Pembayaran cicilan ke-{$payment->installment_no} {$payment->student->name} diperbarui.");
+    }
+
+    public function destroy(Payment $payment): RedirectResponse
+    {
+        $name = $payment->student->name;
+        $no = $payment->installment_no;
+        $this->payments->delete($payment);
+        Activity::log('🗑️', 'ic-bg-grey', "Pembayaran cicilan ke-{$no} {$name} dihapus");
+
+        return back()->with('toast', "Pembayaran cicilan ke-{$no} {$name} dihapus.");
     }
 
     public function proof(Payment $payment): StreamedResponse

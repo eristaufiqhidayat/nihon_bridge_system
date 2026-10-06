@@ -142,6 +142,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
         Route::post('/keuangan/bayar', [Admin\KeuanganController::class, 'record'])->name('keuangan.record');
         Route::post('/keuangan/{payment}/verifikasi', [Admin\KeuanganController::class, 'verify'])->name('keuangan.verify');
+        Route::put('/keuangan/{payment}', [Admin\KeuanganController::class, 'update'])->name('keuangan.update');
+        Route::delete('/keuangan/{payment}', [Admin\KeuanganController::class, 'destroy'])->name('keuangan.destroy');
         Route::get('/keuangan/{payment}/bukti', [Admin\KeuanganController::class, 'proof'])->name('keuangan.proof');
         Route::post('/keuangan/pengingat/{student}', [Admin\KeuanganController::class, 'remind'])->name('keuangan.remind');
     });
