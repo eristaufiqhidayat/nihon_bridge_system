@@ -87,7 +87,7 @@ class ApplicantService
             Student::create([
                 'user_id' => $user->id,
                 'classroom_id' => $class->id,
-                'nis' => $this->nextNis(),
+                'nis' => Student::nextNis(),
                 'program' => $a->program,
                 'stage' => 1,
                 'batch_id' => $class->batch_id,
@@ -107,13 +107,5 @@ class ApplicantService
     {
         abort_unless(in_array($a->status, ['baru', 'berkas', 'tes'], true), 422);
         $a->update(['status' => 'ditolak', 'alasan' => $reason]);
-    }
-
-    private function nextNis(): string
-    {
-        $prefix = 'NB-' . now()->format('y') . '-';
-        $max = Student::where('nis', 'like', $prefix . '%')->max('nis');
-
-        return $prefix . str_pad((string) ($max ? ((int) substr($max, -4)) + 1 : 1), 4, '0', STR_PAD_LEFT);
     }
 }

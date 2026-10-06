@@ -63,6 +63,36 @@ class Student extends Model
         return $this->hasMany(JobCandidate::class);
     }
 
+    /**
+     * Data lain yang masih terkait dengan peserta ini dan menghalangi penghapusan.
+     *
+     * @return array<string, int> label => jumlah, hanya yang jumlahnya > 0
+     */
+    public function deleteBlockers(): array
+    {
+        $counts = [
+            'pembayaran' => $this->payments()->count(),
+            'ujian' => ExamAttempt::where('user_id', $this->user_id)->count(),
+            'sertifikat' => Certificate::where('user_id', $this->user_id)->count(),
+            'kehadiran' => $this->attendances()->count(),
+            'kandidat job order' => $this->candidacies()->count(),
+            'dokumen program' => $this->documents()->count(),
+            'progres materi' => LessonProgress::where('user_id', $this->user_id)->count(),
+            'pesan terkirim' => Message::where('user_id', $this->user_id)->count(),
+        ];
+
+        return array_filter($counts);
+    }
+
+    /** NIS berikutnya untuk tahun berjalan, mis. NB-26-0012. */
+    public static function nextNis(): string
+    {
+        $prefix = 'NB-' . now()->format('y') . '-';
+        $max = static::where('nis', 'like', $prefix . '%')->max('nis');
+
+        return $prefix . str_pad((string) ($max ? ((int) substr($max, -4)) + 1 : 1), 4, '0', STR_PAD_LEFT);
+    }
+
     public function getNameAttribute(): string
     {
         return $this->user->name;
