@@ -34,6 +34,15 @@ class AlurTest extends TestCase
         $this->post('/login/demo/admin')->assertRedirect(route('admin.dashboard'));
     }
 
+    public function test_login_demo_akun_hilang_tidak_404(): void
+    {
+        User::where('email', 'ahmad.fauzi@nihonbridge.id')->update(['is_active' => false]);
+        $this->get('/login')->assertOk()->assertDontSee('/login/demo/peserta')->assertSee('/login/demo/admin');
+        $this->post('/login/demo/peserta')->assertRedirect(route('login'))->assertSessionHasErrors('email');
+        $this->assertGuest();
+        $this->get('/login/demo/peserta')->assertRedirect(route('login'));
+    }
+
     public function test_ujian_cbt_mulai_simpan_kirim(): void
     {
         $sch = ExamSchedule::with('package')->get()->first(fn ($s) => $s->isOpen());

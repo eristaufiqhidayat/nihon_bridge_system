@@ -42,10 +42,10 @@
           <button class="btn-primary" type="submit">Masuk</button>
         </form>
 
-        @if (config('nihonbridge.demo_login'))
+        @if ($demoRoles)
           <div class="or-sep">atau masuk cepat sebagai (demo)</div>
           <div class="role-btns">
-            @foreach (['peserta' => ['🎓', 'Peserta'], 'instruktur' => ['🧑‍🏫', 'Instruktur'], 'admin' => ['⚙️', 'Admin'], 'direktur' => ['📈', 'Direktur']] as $role => [$ic, $label])
+            @foreach (array_intersect_key(['peserta' => ['🎓', 'Peserta'], 'instruktur' => ['🧑‍🏫', 'Instruktur'], 'admin' => ['⚙️', 'Admin'], 'direktur' => ['📈', 'Direktur']], array_flip($demoRoles)) as $role => [$ic, $label])
               <form method="POST" action="{{ route('login.demo', $role) }}">@csrf<button type="submit" class="role-btn" style="width:100%"><span class="ic">{{ $ic }}</span>{{ $label }}</button></form>
             @endforeach
           </div>
