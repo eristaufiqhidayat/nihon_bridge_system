@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             OperationsSeeder::class,
             CommunicationSeeder::class,
             DataSiswaSeeder::class,
+            ExpenseSeeder::class,
         ]);
     }
 }

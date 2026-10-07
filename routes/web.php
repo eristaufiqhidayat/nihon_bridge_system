@@ -139,6 +139,20 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::put('/data-angkatan/{batch}', [Admin\AngkatanController::class, 'update'])->name('angkatan.update');
         Route::delete('/data-angkatan/{batch}', [Admin\AngkatanController::class, 'destroy'])->name('angkatan.destroy');
 
+        Route::get('/kode-akun', [Admin\KodeAkunController::class, 'index'])->name('kode-akun.index');
+        Route::get('/kode-akun/baru', [Admin\KodeAkunController::class, 'create'])->name('kode-akun.create');
+        Route::post('/kode-akun', [Admin\KodeAkunController::class, 'store'])->name('kode-akun.store');
+        Route::get('/kode-akun/{account}/edit', [Admin\KodeAkunController::class, 'edit'])->name('kode-akun.edit');
+        Route::put('/kode-akun/{account}', [Admin\KodeAkunController::class, 'update'])->name('kode-akun.update');
+        Route::delete('/kode-akun/{account}', [Admin\KodeAkunController::class, 'destroy'])->name('kode-akun.destroy');
+
+        Route::get('/pengeluaran', [Admin\PengeluaranController::class, 'index'])->name('pengeluaran.index');
+        Route::get('/pengeluaran/baru', [Admin\PengeluaranController::class, 'create'])->name('pengeluaran.create');
+        Route::post('/pengeluaran', [Admin\PengeluaranController::class, 'store'])->name('pengeluaran.store');
+        Route::get('/pengeluaran/{expense}/edit', [Admin\PengeluaranController::class, 'edit'])->name('pengeluaran.edit');
+        Route::put('/pengeluaran/{expense}', [Admin\PengeluaranController::class, 'update'])->name('pengeluaran.update');
+        Route::delete('/pengeluaran/{expense}', [Admin\PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
+
         Route::get('/pendaftaran', [Admin\PendaftaranController::class, 'index'])->name('pendaftaran.index');
         Route::get('/pendaftaran/{applicant}/berkas/{key}', [Admin\PendaftaranController::class, 'file'])->name('pendaftaran.file');
         Route::post('/pendaftaran/{applicant}/lolos-berkas', [Admin\PendaftaranController::class, 'passDocuments'])->name('pendaftaran.pass');
