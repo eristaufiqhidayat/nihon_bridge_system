@@ -74,6 +74,12 @@ class Fmt
         return self::DAYS_SHORT[$d->dayOfWeek] . ' ' . $d->day;
     }
 
+    /** Nama bulan: monthName(10) = "Oktober", monthName(10, true) = "Okt". */
+    public static function monthName(int $month, bool $short = false): string
+    {
+        return ($short ? self::MONTHS_SHORT : self::MONTHS)[$month - 1] ?? '–';
+    }
+
     /** Sep 2026 */
     public static function monthYear($d): string
     {

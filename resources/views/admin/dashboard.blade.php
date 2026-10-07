@@ -16,6 +16,7 @@
     <div class="card stat-mini"><div class="ic ic-bg-green">🗂️</div><div><p>Soal di bank</p><h4 class="tnum">{{ $stats['soal'] }}</h4></div></div>
     <div class="card stat-mini"><div class="ic ic-bg-orange">📄</div><div><p>Dokumen dalam proses</p><h4 class="tnum">{{ $stats['dokumen'] }}</h4></div></div>
   </div>
+  @include('admin.partials.laporan-keuangan', ['fin' => $fin])
   <div class="grid g-admin">
     <div class="card" style="padding:0">
       <div class="pad" style="padding-bottom:6px"><div class="sh"><h4>Pengguna</h4><span class="small muted">{{ $users->where('is_active', true)->count() }} aktif dari {{ $users->count() }} · <a class="linkbtn" href="{{ route('pengguna-admin.index') }}">Kelola di Data Pengguna</a></span></div></div>
