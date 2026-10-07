@@ -36,7 +36,6 @@ class DashboardController extends Controller
                 'soal' => Question::count(),
                 'dokumen' => $students->sum(fn ($s) => collect(Catalog::DOCS)->filter(fn ($d) => $s->docStatus($d) === 'proses')->count()),
             ],
-            'users' => User::with('student.classroom', 'waliClasses', 'roleInfo')->orderByRaw("CASE role WHEN 'peserta' THEN 0 WHEN 'instruktur' THEN 1 WHEN 'admin' THEN 2 ELSE 3 END")->orderBy('id')->get(),
             'activities' => Activity::latest()->limit(5)->get(),
             'todo' => [
                 'baru' => Applicant::where('status', 'baru')->count(),
