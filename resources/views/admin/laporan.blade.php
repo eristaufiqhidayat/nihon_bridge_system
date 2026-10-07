@@ -71,5 +71,6 @@
       </svg>
       <div class="legend-row">@foreach (array_keys($trend) as $k)<span style="opacity:{{ $op($k) ? 1 : .35 }}"><span class="sw" style="background:{{ Catalog::LV_COLOR[$k] }}"></span>{{ $k }}</span>@endforeach</div></div>
   </div>
+  <div style="margin-top:16px">@include('admin.partials.laporan-keuangan', ['fin' => $fin, 'keep' => ['tahun' => $year, 'level' => $level]])</div>
 </div>
 @endsection

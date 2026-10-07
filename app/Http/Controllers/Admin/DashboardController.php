@@ -11,6 +11,7 @@ use App\Models\Question;
 use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\FinanceReportService;
 use App\Services\PaymentService;
 use App\Support\Catalog;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,7 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(PaymentService $payments): View
+    public function index(Request $request, PaymentService $payments, FinanceReportService $finance): View
     {
         $students = Student::with(['documents', ...PaymentService::RELATIONS])->get();
 
@@ -44,6 +45,7 @@ class DashboardController extends Controller
             ],
             'classes' => Classroom::orderBy('kode')->get(),
             'roles' => Role::orderByDesc('is_system')->orderBy('id')->get(),
+            'fin' => $finance->report($request->query('ktahun'), $request->query('kbulan')),
         ]);
     }
 

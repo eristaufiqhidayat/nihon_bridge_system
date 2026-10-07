@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\FinanceReportService;
 use App\Services\ReportService;
 use App\Support\Catalog;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class LaporanController extends Controller
     {
     }
 
-    public function index(Request $request): View
+    public function index(Request $request, FinanceReportService $finance): View
     {
         $years = $this->reports->years();
         $year = in_array((int) $request->query('tahun'), $years, true) ? (int) $request->query('tahun') : ($years[0] ?? now()->year);
@@ -26,6 +27,7 @@ class LaporanController extends Controller
             'year' => $year,
             'level' => $level,
             'trend' => $this->reports->trend(),
+            'fin' => $finance->report($request->query('ktahun'), $request->query('kbulan')),
         ]);
     }
 
