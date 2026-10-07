@@ -45,6 +45,8 @@ class Navigation
             ['perusahaan.index', '🏢', 'Perusahaan & Job Order', 'perusahaan.*'],
             ['pembayaran-admin.index', '🧾', 'Pembayaran Peserta', 'pembayaran-admin.*'],
             ['keuangan.index', '💳', 'Keuangan', 'keuangan.*'],
+            ['pengeluaran.index', '💸', 'Pengeluaran', 'pengeluaran.*'],
+            ['kode-akun.index', '📒', 'Kode Akun', 'kode-akun.*'],
             ['laporan.index', '📈', 'Laporan', 'laporan.*'],
             ['role-admin.index', '🔐', 'Data Role', 'role-admin.*'],
             ['pesan.index', '✉️', 'Pesan', 'pesan.*'],
