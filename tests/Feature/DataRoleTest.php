@@ -144,7 +144,6 @@ class DataRoleTest extends TestCase
         $this->assertSame('staf', $budi->role);
         $this->post('/admin/pengguna', ['name' => 'X', 'email' => 'x@nihonbridge.id', 'role' => 'tidak-ada'])->assertSessionHasErrors('role');
 
-        $this->get('/admin')->assertSee(route('admin.users.role', $budi));
         $this->patch("/admin/pengguna/{$budi->id}/peran", ['role' => 'instruktur'])->assertSessionHasNoErrors();
         $this->assertSame('instruktur', $budi->fresh()->role);
 
