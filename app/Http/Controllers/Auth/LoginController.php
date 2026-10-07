@@ -22,7 +22,12 @@ class LoginController extends Controller
 
     public function show(): View
     {
-        return view('auth.login');
+        // Tombol demo hanya untuk akun contoh yang benar-benar ada & aktif di database ini.
+        $demoRoles = config('nihonbridge.demo_login')
+            ? array_keys(array_intersect(self::DEMO, User::whereIn('email', self::DEMO)->where('is_active', true)->pluck('email')->all()))
+            : [];
+
+        return view('auth.login', compact('demoRoles'));
     }
 
     public function login(Request $request): RedirectResponse
@@ -47,7 +52,10 @@ class LoginController extends Controller
     public function demo(Request $request, string $role): RedirectResponse
     {
         abort_unless(config('nihonbridge.demo_login') && isset(self::DEMO[$role]), 404);
-        $user = User::where('email', self::DEMO[$role])->firstOrFail();
+        $user = User::where('email', self::DEMO[$role])->where('is_active', true)->first();
+        if (! $user) {
+            return redirect()->route('login')->withErrors(['email' => 'Akun demo ' . self::DEMO[$role] . ' tidak ada atau nonaktif di server ini. Masuk dengan email & password akun Anda.']);
+        }
         Auth::login($user);
         $request->session()->regenerate();
 

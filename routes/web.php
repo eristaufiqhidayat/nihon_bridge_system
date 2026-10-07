@@ -20,6 +20,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:10,1');
     Route::post('/login/demo/{role}', [LoginController::class, 'demo'])->name('login.demo');
+    Route::get('/login/demo/{role}', fn () => redirect()->route('login')); // dibuka langsung/refresh: kembali ke halaman login
 
     Route::get('/lupa-password', [PasswordResetController::class, 'request'])->name('password.request');
     Route::post('/lupa-password', [PasswordResetController::class, 'send'])->middleware('throttle:5,1')->name('password.email');
